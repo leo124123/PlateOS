@@ -39,7 +39,7 @@ const SmoothCameraTarget: React.FC<CameraTargetProps> = ({ target, controlsRef }
 };
 
 // ─── RESTAURANT INTERIOR ─────────────────────────────────────────────────────
-const RestaurantBuilding: React.FC = () => (
+const RestaurantBuilding: React.FC<{ showCeiling: boolean }> = ({ showCeiling }) => (
   <group>
     {/* ── FLOOR: Warm hardwood parquet ────────────────────────────── */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
@@ -96,11 +96,13 @@ const RestaurantBuilding: React.FC = () => (
       </mesh>
     ))}
 
-    {/* ── CEILING (visible from inside, thin) ────────────────────── */}
-    <mesh position={[0, 3.28, 0]}>
-      <boxGeometry args={[30.2, 0.06, 30.2]} />
-      <meshStandardMaterial color="#1a1a2e" roughness={0.6} />
-    </mesh>
+    {/* ── CEILING (toggleable) ────────────────────────────────────── */}
+    {showCeiling && (
+      <mesh position={[0, 3.28, 0]}>
+        <boxGeometry args={[30.2, 0.06, 30.2]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.6} />
+      </mesh>
+    )}
 
     {/* ── CEILING PENDANT LIGHTS ─────────────────────────────────── */}
     {[
@@ -221,6 +223,7 @@ const RestaurantBuilding: React.FC = () => (
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, onSelectTable }) => {
   const [activeZone, setActiveZone] = useState('TODAS');
+  const [showCeiling, setShowCeiling] = useState(false);
   const controlsRef = useRef<any>(null);
   const [cameraTarget] = useState(() => new THREE.Vector3(0, 0, 0));
 
@@ -336,7 +339,7 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
         </mesh>
 
         {/* ── ALL RESTAURANT ELEMENTS ── */}
-        <RestaurantBuilding />
+        <RestaurantBuilding showCeiling={showCeiling} />
         <OutdoorStreetArea3D />
         <EntranceArea3D />
         <WaiterPOSStation3D />
@@ -352,13 +355,23 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
       </Canvas>
 
       {/* ── BOTTOM HUD ─────────────────────────────────────────── */}
-      <div className="absolute bottom-2 left-2 right-2 z-10 flex items-center justify-between pointer-events-none">
-        <div className="bg-black/75 backdrop-blur-md text-slate-300 px-3 py-1.5 rounded-xl text-[10px] flex items-center gap-3 border border-white/10 shadow-2xl">
+      <div className="absolute bottom-2 left-2 right-2 z-10 flex items-center justify-between pointer-events-auto">
+        <div className="bg-black/75 backdrop-blur-md text-slate-300 px-3 py-1.5 rounded-xl text-[10px] flex items-center gap-3 border border-white/10 shadow-2xl pointer-events-none">
           <div>🖱️ <b>Arrastrar:</b> Rotar</div>
           <div>📜 <b>Scroll:</b> Zoom</div>
           <div>👆 <b>Clic:</b> Comanda</div>
         </div>
-        <div className="bg-black/75 backdrop-blur-md text-amber-400 px-3 py-1.5 rounded-xl text-[10px] font-bold border border-white/10 shadow-2xl">
+        <button
+          onClick={() => setShowCeiling((v) => !v)}
+          className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide border shadow-2xl backdrop-blur-md transition-all duration-300 ${
+            showCeiling
+              ? 'bg-amber-500/80 text-black border-amber-400/40 shadow-amber-500/20'
+              : 'bg-black/75 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
+          }`}
+        >
+          {showCeiling ? '🏠 Ocultar Techo' : '🏠 Mostrar Techo'}
+        </button>
+        <div className="bg-black/75 backdrop-blur-md text-amber-400 px-3 py-1.5 rounded-xl text-[10px] font-bold border border-white/10 shadow-2xl pointer-events-none">
           🍽️ PlateOS 3D — Vista Interior
         </div>
       </div>
