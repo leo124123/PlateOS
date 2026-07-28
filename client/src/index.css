@@ -1,22 +1,26 @@
 /* ==========================================================================
-   PlateOS 3D - Full Custom Vanilla CSS Design System & Theme Styling
+   PlateOS 3D - State-of-the-Art Vanilla CSS Design System & Dark Luxury Theme
    ========================================================================== */
 
-/* 1. Global Variables & Color Palette */
+/* 1. Root Variables & Color Tokens */
 :root {
   --bg-dark: #070b14;
+  --bg-darker: #03060d;
   --bg-card: rgba(15, 23, 42, 0.85);
-  --bg-card-hover: rgba(30, 41, 59, 0.9);
-  --bg-glass: rgba(15, 23, 42, 0.75);
-  --border-glass: rgba(255, 255, 255, 0.1);
+  --bg-card-hover: rgba(30, 41, 59, 0.95);
+  --bg-glass: rgba(15, 23, 42, 0.8);
+  --border-glass: rgba(255, 255, 255, 0.12);
   --border-accent: rgba(245, 158, 11, 0.4);
 
   --accent-amber: #f59e0b;
-  --accent-gold: #fbbf24;
+  --accent-amber-light: #fbbf24;
+  --accent-orange: #ea580c;
   --accent-emerald: #10b981;
+  --accent-teal: #14b8a6;
   --accent-cyan: #06b6d4;
   --accent-purple: #a855f7;
   --accent-rose: #f43f5e;
+  --accent-blue: #3b82f6;
 
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
@@ -27,12 +31,13 @@
   --radius-lg: 24px;
   --radius-full: 9999px;
 
-  --shadow-main: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 25px rgba(245, 158, 11, 0.25);
-  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-main: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  --shadow-glow-amber: 0 0 30px rgba(245, 158, 11, 0.3);
+  --shadow-glow-emerald: 0 0 30px rgba(16, 185, 129, 0.3);
+  --transition-fast: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 2. Reset & Typography */
+/* 2. Global Reset & Typography */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -55,22 +60,22 @@ h1, h2, h3, h4, h5, h6 {
 /* 3. Glassmorphism Utilities */
 .glass-panel {
   background: var(--bg-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-glass);
   box-shadow: var(--shadow-main);
 }
 
 .glass-panel-light {
-  background: rgba(30, 41, 59, 0.8);
-  backdrop-filter: blur(12px);
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* 4. Button Styles */
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent-amber), #ea580c);
-  color: #090d16;
+/* 4. Button System */
+.btn-amber {
+  background: linear-gradient(135deg, var(--accent-amber), var(--accent-orange));
+  color: #070b14;
   font-weight: 800;
   font-size: 0.85rem;
   padding: 0.65rem 1.25rem;
@@ -81,16 +86,37 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.5rem;
   transition: var(--transition-fast);
-  box-shadow: var(--shadow-glow);
+  box-shadow: var(--shadow-glow-amber);
 }
 
-.btn-primary:hover {
+.btn-amber:hover {
   transform: translateY(-2px);
-  filter: brightness(1.1);
+  filter: brightness(1.15);
 }
 
-.btn-secondary {
-  background: rgba(30, 41, 59, 0.9);
+.btn-emerald {
+  background: linear-gradient(135deg, var(--accent-emerald), var(--accent-teal));
+  color: #070b14;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-glow-emerald);
+}
+
+.btn-emerald:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+}
+
+.btn-outline {
+  background: rgba(30, 41, 59, 0.8);
   color: var(--text-main);
   font-weight: 700;
   font-size: 0.85rem;
@@ -101,29 +127,12 @@ h1, h2, h3, h4, h5, h6 {
   transition: var(--transition-fast);
 }
 
-.btn-secondary:hover {
+.btn-outline:hover {
   background: rgba(51, 65, 85, 1);
   color: #ffffff;
 }
 
-.btn-success {
-  background: linear-gradient(135deg, var(--accent-emerald), #059669);
-  color: #090d16;
-  font-weight: 800;
-  font-size: 0.85rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.btn-success:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-}
-
-/* 5. Custom Status Badges */
+/* 5. Custom Table Status Badges */
 .badge-status {
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
@@ -137,57 +146,57 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge-available {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.18);
   color: var(--accent-emerald);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
 .badge-occupied {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.18);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.35);
 }
 
 .badge-pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--accent-gold);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.18);
+  color: var(--accent-amber-light);
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .badge-bill {
-  background: rgba(234, 179, 8, 0.2);
+  background: rgba(234, 179, 8, 0.22);
   color: #fde047;
-  border: 1px solid rgba(234, 179, 8, 0.4);
+  border: 1px solid rgba(234, 179, 8, 0.45);
 }
 
 .badge-cleaning {
-  background: rgba(168, 85, 247, 0.15);
+  background: rgba(168, 85, 247, 0.18);
   color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.35);
 }
 
-/* 6. Glow Animations */
-@keyframes pulseGlow {
+/* 6. Pulse Animations & Dynamic Glows */
+@keyframes ringGlow {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
   }
   50% {
-    box-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
+    box-shadow: 0 0 28px rgba(245, 158, 11, 0.85);
   }
 }
 
-.glow-amber {
-  animation: pulseGlow 2s infinite ease-in-out;
+.glow-active {
+  animation: ringGlow 2s infinite ease-in-out;
 }
 
-/* 7. Scrollbar Customization */
+/* 7. Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(15, 23, 42, 0.6);
 }
 
 ::-webkit-scrollbar-thumb {
