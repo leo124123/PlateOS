@@ -17,27 +17,29 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
   const [isCallingWaiter, setIsCallingWaiter] = useState(false);
   const { socket } = useSocket();
 
-  const getStatusColor = () => {
+  // Visual Colors matching POS Reference Image (Coral Red table tops, Blue status badges, Green available)
+  const getTableColor = () => {
     switch (table.status) {
       case 'ORDER_PENDING':
-        return '#f59e0b';
+        return '#f97316'; // Orange
       case 'EATING':
-        return '#3b82f6';
+      case 'OCCUPIED':
+        return '#ef4444'; // Bright POS Coral Red
       case 'BILL_REQUESTED':
-        return '#eab308';
+        return '#eab308'; // Yellow
       case 'CLEANING':
-        return '#a855f7';
+        return '#a855f7'; // Purple
       case 'AVAILABLE':
       default:
-        return '#10b981';
+        return '#10b981'; // Green
     }
   };
 
-  const statusColor = getStatusColor();
+  const mainColor = getTableColor();
 
   useFrame(({ clock }) => {
     if (hovered && tableGroupRef.current) {
-      tableGroupRef.current.position.y = Math.sin(clock.getElapsedTime() * 6) * 0.05 + 0.1;
+      tableGroupRef.current.position.y = Math.sin(clock.getElapsedTime() * 6) * 0.04 + 0.08;
     } else if (tableGroupRef.current) {
       tableGroupRef.current.position.y = 0;
     }
@@ -73,51 +75,57 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
     >
       {/* Halo Base Ring */}
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.1, 1.35, 32]} />
+        <ringGeometry args={[1.15, 1.4, 32]} />
         <meshBasicMaterial
-          color={isCallingWaiter ? '#f43f5e' : statusColor}
+          color={isCallingWaiter ? '#f43f5e' : mainColor}
           side={THREE.DoubleSide}
           transparent
-          opacity={hovered || isCallingWaiter ? 0.95 : 0.6}
+          opacity={hovered || isCallingWaiter ? 0.95 : 0.65}
         />
       </mesh>
 
-      {/* Table Leg */}
+      {/* Table Wooden Leg */}
       <mesh position={[0, 0.4, 0]}>
-        <cylinderGeometry args={[0.08, 0.12, 0.8, 16]} />
-        <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.2} />
+        <cylinderGeometry args={[0.09, 0.13, 0.8, 16]} />
+        <meshStandardMaterial color="#582f0e" roughness={0.3} />
       </mesh>
 
-      {/* Table Foot Base */}
+      {/* Table Base Foot */}
       <mesh position={[0, 0.05, 0]}>
-        <cylinderGeometry args={[0.4, 0.45, 0.08, 16]} />
-        <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
+        <cylinderGeometry args={[0.42, 0.48, 0.08, 16]} />
+        <meshStandardMaterial color="#331800" roughness={0.4} />
       </mesh>
 
-      {/* Table Top Surface */}
+      {/* Table Top Surface (Red / Coral tablecloth inspired by POS reference image) */}
       <mesh position={[0, 0.82, 0]}>
         {table.shape === 'SQUARE' ? (
-          <boxGeometry args={[1.5, 0.08, 1.5]} />
+          <boxGeometry args={[1.6, 0.08, 1.6]} />
         ) : table.shape === 'RECTANGLE' ? (
-          <boxGeometry args={[2.2, 0.08, 1.2]} />
+          <boxGeometry args={[2.4, 0.08, 1.3]} />
         ) : (
-          <cylinderGeometry args={[0.9, 0.9, 0.08, 32]} />
+          <cylinderGeometry args={[0.95, 0.95, 0.08, 32]} />
         )}
-        <meshStandardMaterial color={hovered ? '#475569' : '#1e293b'} roughness={0.2} metalness={0.3} />
+        <meshStandardMaterial color={hovered ? '#fca5a5' : mainColor} roughness={0.2} metalness={0.1} />
       </mesh>
 
-      {/* Table Center Emblem */}
-      <mesh position={[0, 0.87, 0]}>
-        <cylinderGeometry args={[0.3, 0.3, 0.02, 16]} />
-        <meshStandardMaterial color={isCallingWaiter ? '#f43f5e' : statusColor} roughness={0.1} metalness={0.5} />
+      {/* Wooden Table Border Edge */}
+      <mesh position={[0, 0.82, 0]}>
+        {table.shape === 'SQUARE' ? (
+          <boxGeometry args={[1.66, 0.06, 1.66]} />
+        ) : table.shape === 'RECTANGLE' ? (
+          <boxGeometry args={[2.46, 0.06, 1.36]} />
+        ) : (
+          <cylinderGeometry args={[0.98, 0.98, 0.06, 32]} />
+        )}
+        <meshStandardMaterial color="#78350f" roughness={0.4} />
       </mesh>
 
-      {/* Chairs around Table */}
+      {/* Chairs with Blue Seat Covers (Matching POS image chairs) */}
       {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((angle, idx) => (
         <group key={idx} rotation={[0, angle, 0]}>
-          <mesh position={[0, 0.35, 0.9]}>
-            <boxGeometry args={[0.4, 0.7, 0.4]} />
-            <meshStandardMaterial color="#0f172a" roughness={0.4} />
+          <mesh position={[0, 0.35, 0.95]}>
+            <boxGeometry args={[0.42, 0.7, 0.42]} />
+            <meshStandardMaterial color="#2563eb" roughness={0.4} />
           </mesh>
         </group>
       ))}
@@ -127,37 +135,39 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
         <CustomerAvatar3D status={table.status} tableNumber={table.number} />
       )}
 
-      {/* 3D Floating HTML Label & Customer Call Button */}
-      <Html position={[0, 1.5, 0]} center distanceFactor={14}>
-        <div className="flex flex-col items-center gap-1.5 pointer-events-auto">
+      {/* Blue POS Table Badge Overlay (Matching exact BeatlePOS table badges in reference image) */}
+      <Html position={[0, 1.5, 0]} center distanceFactor={13}>
+        <div className="flex flex-col items-center gap-1 pointer-events-auto">
+          {/* Blue POS Square Badge */}
           <div
-            className={`px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 border transition-all duration-300 ${
+            className={`px-2.5 py-1 rounded-md shadow-2xl flex items-center gap-2 border border-blue-400 font-extrabold text-xs transition-all duration-200 ${
               hovered ? 'scale-110 shadow-2xl' : ''
             }`}
             style={{
-              backgroundColor: 'rgba(15, 23, 42, 0.92)',
-              borderColor: isCallingWaiter ? '#f43f5e' : statusColor,
+              backgroundColor: '#1e40af', // POS Blue
+              color: '#ffffff',
             }}
           >
-            <span className="w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: isCallingWaiter ? '#f43f5e' : statusColor }} />
-            <span className="font-extrabold text-sm text-white tracking-wide">
-              Mesa {table.number}
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: mainColor }} />
+            <span className="font-black text-sm tracking-tight text-white">
+              {table.number}
             </span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold uppercase">
-              {table.status}
+            <span className="text-[10px] px-1 py-0.5 rounded bg-blue-900 text-blue-100 uppercase font-black">
+              {table.capacity}p
             </span>
           </div>
 
+          {/* Table Call Button */}
           {table.status !== 'AVAILABLE' && (
             <button
               onClick={handleCallWaiter}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all shadow-md ${
+              className={`px-2 py-0.5 rounded text-[10px] font-black uppercase transition-all shadow-md ${
                 isCallingWaiter
-                  ? 'bg-rose-500 text-white animate-bounce shadow-rose-500/50'
-                  : 'bg-slate-900/90 text-amber-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-700'
+                  ? 'bg-rose-600 text-white animate-bounce shadow-rose-600/50'
+                  : 'bg-slate-900 text-amber-300 hover:bg-amber-400 hover:text-slate-950 border border-slate-700'
               }`}
             >
-              {isCallingWaiter ? '🔔 ¡Llamando!' : '🛎️ Llamar Mesero'}
+              {isCallingWaiter ? '🔔 ¡Llamando!' : '🛎️ Llamar'}
             </button>
           )}
         </div>
