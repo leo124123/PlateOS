@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Grid, Text } from '@react-three/drei';
+import * as THREE from 'three';
 import { TableItem } from '../../types';
 import { Table3D } from './Table3D';
-import { EntranceArea3D, WaiterPOSStation3D, OpenKitchen3D, BarLoungeArea3D } from './RestaurantProps3D';
+import { OutdoorStreetArea3D, EntranceArea3D, WaiterPOSStation3D, OpenKitchen3D, BarLoungeArea3D } from './RestaurantProps3D';
 import { StaffAvatars3D } from './CustomerAvatar3D';
 
 interface RestaurantFloor3DProps {
@@ -11,31 +12,47 @@ interface RestaurantFloor3DProps {
   onSelectTable: (table: TableItem) => void;
 }
 
-const RoomZoneWalls: React.FC = () => {
+const EnclosedRestaurantWalls: React.FC = () => {
   return (
     <group>
-      {/* Sleek Outer Boundary Walls (Dark Slate with Red Top Accent Trim) */}
-      <mesh position={[0, 0.75, -15]}>
-        <boxGeometry args={[30.2, 1.5, 0.4]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.3} />
-      </mesh>
-      <mesh position={[0, 1.52, -15]}>
-        <boxGeometry args={[30.2, 0.08, 0.44]} />
+      {/* Left Side Exterior Brick Wall with Windows */}
+      <group position={[-15, 0, 0]}>
+        <mesh position={[0, 1.6, 0]}>
+          <boxGeometry args={[0.4, 3.2, 30.2]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.4} />
+        </mesh>
+        {/* Decorative Wall Windows */}
+        {[-10, 0, 10].map((z, idx) => (
+          <mesh key={idx} position={[0.2, 1.8, z]}>
+            <boxGeometry args={[0.08, 1.4, 3.5]} />
+            <meshStandardMaterial color="#38bdf8" transparent opacity={0.3} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Right Side Exterior Brick Wall with Windows */}
+      <group position={[15, 0, 0]}>
+        <mesh position={[0, 1.6, 0]}>
+          <boxGeometry args={[0.4, 3.2, 30.2]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.4} />
+        </mesh>
+        {/* Decorative Wall Windows */}
+        {[-10, 0, 10].map((z, idx) => (
+          <mesh key={idx} position={[-0.2, 1.8, z]}>
+            <boxGeometry args={[0.08, 1.4, 3.5]} />
+            <meshStandardMaterial color="#38bdf8" transparent opacity={0.3} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Red Accent Trim Line along top of side walls */}
+      <mesh position={[-15, 3.22, 0]}>
+        <boxGeometry args={[0.44, 0.08, 30.2]} />
         <meshStandardMaterial color="#ef4444" roughness={0.1} />
       </mesh>
-
-      <mesh position={[-15, 0.75, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[30.2, 1.5, 0.4]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.3} />
-      </mesh>
-      <mesh position={[-15, 1.52, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[30.2, 0.08, 0.44]} />
+      <mesh position={[15, 3.22, 0]}>
+        <boxGeometry args={[0.44, 0.08, 30.2]} />
         <meshStandardMaterial color="#ef4444" roughness={0.1} />
-      </mesh>
-
-      <mesh position={[15, 0.75, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[30.2, 1.5, 0.4]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.3} />
       </mesh>
 
       {/* Red Interior Zone Boundary Lines */}
@@ -48,7 +65,27 @@ const RoomZoneWalls: React.FC = () => {
         <meshStandardMaterial color="#ef4444" roughness={0.1} />
       </mesh>
 
-      {/* 3D Zone Labels Right-Side Up Facing the User */}
+      {/* Ceiling Pendant Warm Lighting Fixtures over Tables */}
+      {[-7.5, 7.5].map((x, idx) =>
+        [-7.5, 7.5].map((z, zidx) => (
+          <group key={`${idx}-${zidx}`} position={[x, 3.0, z]}>
+            {/* Lamp Cord */}
+            <mesh position={[0, 0.4, 0]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.8, 8]} />
+              <meshStandardMaterial color="#020617" />
+            </mesh>
+            {/* Lamp Shade */}
+            <mesh position={[0, 0, 0]}>
+              <coneGeometry args={[0.4, 0.3, 16]} />
+              <meshStandardMaterial color="#f59e0b" roughness={0.2} />
+            </mesh>
+            {/* Warm Ambient Spotlight */}
+            <pointLight position={[0, -0.2, 0]} intensity={1.5} color="#fbbf24" distance={10} />
+          </group>
+        ))
+      )}
+
+      {/* 3D Zone Labels Right-Side Up Facing User */}
       <Text position={[-7.5, 0.02, -11]} rotation={[-Math.PI / 2, 0, 0]} fontSize={1.3} color="#475569" fontWeight="bold">
         SALA 1 (PRINCIPAL)
       </Text>
@@ -75,7 +112,7 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
 
     switch (zone) {
       case 'ENTRADA':
-        controlsRef.current.target.set(0, 0, 13);
+        controlsRef.current.target.set(0, 0, 16);
         break;
       case 'POS':
         controlsRef.current.target.set(-12, 0, 0);
@@ -101,13 +138,13 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
   };
 
   return (
-    <div className="w-full h-full relative rounded-2xl overflow-hidden shadow-2xl border border-slate-300 bg-slate-200 flex flex-col">
-      {/* Top Room Zone Switcher Tabs with Camera Presets */}
+    <div className="w-full h-full relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-950 flex flex-col">
+      {/* Top Room Zone Switcher Tabs */}
       <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-auto overflow-x-auto">
         <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-900/90 text-white shadow-xl border border-slate-700">
           {[
             { id: 'TODAS', label: '🌐 Ver Todo' },
-            { id: 'ENTRADA', label: '🚪 Entrada' },
+            { id: 'ENTRADA', label: '🚪 Entrada & Calle' },
             { id: 'POS', label: '💻 POS Mesero' },
             { id: 'COCINA', label: '👨‍🍳 Cocina Abierta' },
             { id: 'BAR', label: '🍸 Bar' },
@@ -146,9 +183,9 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
         </div>
       </div>
 
-      {/* 3D Canvas Viewport with Complete Restaurant Structure & Lighting */}
-      <Canvas shadows className="w-full h-full">
-        <PerspectiveCamera makeDefault position={[0, 24, 18]} fov={42} />
+      {/* 3D Canvas Viewport with Complete Restaurant Structure, Enclosed Walls & Outdoor Street */}
+      <Canvas shadows className="w-full h-full" onCreated={({ scene }) => { scene.background = new THREE.Color("#030712"); }}>
+        <PerspectiveCamera makeDefault position={[0, 26, 20]} fov={44} />
         <OrbitControls
           ref={controlsRef}
           enablePan={true}
@@ -157,29 +194,29 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
           minPolarAngle={0.1}
           maxPolarAngle={Math.PI / 2.25}
           minDistance={5}
-          maxDistance={35}
+          maxDistance={42}
         />
 
-        <ambientLight intensity={1.1} />
+        <ambientLight intensity={0.9} />
         <directionalLight
-          position={[15, 25, 15]}
-          intensity={1.5}
+          position={[15, 28, 18]}
+          intensity={1.4}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
-        <pointLight position={[-10, 12, -10]} intensity={0.7} color="#38bdf8" />
-        <pointLight position={[10, 12, 10]} intensity={0.7} color="#fbbf24" />
+        <pointLight position={[-10, 14, -10]} intensity={0.8} color="#38bdf8" />
+        <pointLight position={[10, 14, 10]} intensity={0.8} color="#fbbf24" />
 
-        {/* High-Contrast Light Parquet Tile Floor Plane */}
+        {/* Interior Restaurant Hardwood Floor Plane */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-          <planeGeometry args={[32, 32]} />
+          <planeGeometry args={[30, 30]} />
           <meshStandardMaterial color="#cbd5e1" roughness={0.3} metalness={0.1} />
         </mesh>
 
         <Grid
           position={[0, 0, 0]}
-          args={[32, 32]}
+          args={[30, 30]}
           cellSize={1}
           cellThickness={1.5}
           cellColor="#94a3b8"
@@ -190,8 +227,11 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
           fadeStrength={1}
         />
 
-        {/* 3D Architectural Props & Areas */}
-        <RoomZoneWalls />
+        {/* Outdoor Street, Sidewalk & Street Lamps */}
+        <OutdoorStreetArea3D />
+
+        {/* Enclosed Restaurant Walls & Architectural Props */}
+        <EnclosedRestaurantWalls />
         <EntranceArea3D />
         <WaiterPOSStation3D />
         <OpenKitchen3D />
@@ -206,7 +246,7 @@ export const RestaurantFloor3D: React.FC<RestaurantFloor3DProps> = ({ tables, on
       {/* Bottom Controls Legend */}
       <div className="absolute bottom-3 left-3 bg-slate-900/90 text-slate-200 px-4 py-1.5 rounded-xl text-xs pointer-events-none flex items-center gap-4 border border-slate-700 shadow-xl z-10">
         <div>🖱️ <b>Arrastrar:</b> Mover Cámara</div>
-        <div>📜 <b>Rueda:</b> Zoom</div>
+        <div>📜 <b>Rueda:</b> Zoom In/Out</div>
         <div>👆 <b>Tocar Mesa:</b> Abrir Comanda / Cobro</div>
       </div>
     </div>
