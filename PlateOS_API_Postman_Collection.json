@@ -1,0 +1,348 @@
+{
+  "info": {
+    "_postman_id": "plateos-3d-api-collection-2026",
+    "name": "PlateOS 3D - Collection de APIs (Producción)",
+    "description": "Colección completa de endpoints REST API de PlateOS 3D para pruebas en Postman, Insomnia y Thunder Client.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Salud y Diagnóstico",
+      "item": [
+        {
+          "name": "Health Check Básico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Diagnóstico Detallado del Servidor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/details",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "details"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Autenticación (Auth)",
+      "item": [
+        {
+          "name": "Login por Código PIN Rápido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('bearerToken', jsonData.data.token);",
+                  "    console.log('Token guardado automáticamente:', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pinCode\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login-pin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login-pin"]
+            },
+            "description": "Prueba PINs: 1234 (Admin), 5678 (Mesero), 9999 (Cocina), 4321 (Caja)"
+          }
+        },
+        {
+          "name": "Login por Correo y Contraseña",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('bearerToken', jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@plateos.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Perfil Actual (/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Salón y Mesas 3D (Tables)",
+      "item": [
+        {
+          "name": "Obtener Todas las Mesas 3D",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tables",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tables"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Estado de Mesa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OCCUPIED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/tbl-1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tables", "tbl-1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Coordenadas 3D de Mesa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"positionX\": -6,\n  \"positionY\": 0,\n  \"positionZ\": -6,\n  \"rotationY\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/tbl-1/position",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tables", "tbl-1", "position"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Menú y Platillos (Menu)",
+      "item": [
+        {
+          "name": "Obtener Menú Completo con Categorías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/menu",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menu"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Comandas y Pedidos (Orders)",
+      "item": [
+        {
+          "name": "Crear Nueva Comanda (Enviar a Cocina)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableId\": \"tbl-3\",\n  \"customerName\": \"Juan Pérez\",\n  \"notes\": \"Sin sal, término medio\",\n  \"items\": [\n    {\n      \"menuItemId\": \"dish-3\",\n      \"quantity\": 2,\n      \"notes\": \"Término medio\"\n    },\n    {\n      \"menuItemId\": \"dish-6\",\n      \"quantity\": 1,\n      \"notes\": \"Poco hielo\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Comandas Activas de Cocina (KDS)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/kitchen",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "kitchen"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar Estado de Comanda (Marcar Lista)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY_FOR_DELIVERY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/ord-1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "ord-1", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Caja y Cobros (Payments)",
+      "item": [
+        {
+          "name": "Procesar Cobro de Mesa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"ord-1\",\n  \"customerName\": \"Juan Pérez\",\n  \"method\": \"CARD\",\n  \"tipAmount\": 12.50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Turnos y Metas (Shifts & Goals)",
+      "item": [
+        {
+          "name": "Obtener Turno Actual del Mesero",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shifts/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shifts", "current"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Meta del Día y Progreso de Ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/goals/today",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "goals", "today"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

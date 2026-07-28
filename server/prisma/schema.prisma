@@ -1,0 +1,190 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  WAITER
+  KITCHEN
+  CASHIER
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  ORDER_PENDING
+  EATING
+  BILL_REQUESTED
+  CLEANING
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED_BY_WAITER
+  IN_PREPARATION
+  READY_FOR_DELIVERY
+  SERVED
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  TRANSFER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  pinCode   String?
+  role      Role     @default(WAITER)
+  avatarUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders   Order[]    @relation("WaiterOrders")
+  shifts   ShiftLog[]
+  payments Payment[]  @relation("CashierPayments")
+
+  @@index([email])
+  @@index([pinCode])
+}
+
+model Table {
+  id             String      @id @default(uuid())
+  number         Int         @unique
+  name           String
+  capacity       Int         @default(4)
+  positionX      Float       @default(0)
+  positionY      Float       @default(0)
+  positionZ      Float       @default(0)
+  rotationY      Float       @default(0)
+  shape          String      @default("ROUND")
+  status         TableStatus @default(AVAILABLE)
+  currentOrderId String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  orders Order[]
+
+  @@index([number])
+  @@index([status])
+}
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String
+  icon         String?
+  displayOrder Int        @default(0)
+  items        MenuItem[]
+  createdAt    DateTime   @default(now())
+}
+
+model MenuItem {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  price           Float
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  isAvailable     Boolean  @default(true)
+  prepTimeMinutes Int      @default(15)
+  imageUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  orderNumber  Int         @default(autoincrement())
+  tableId      String
+  table        Table       @relation(fields: [tableId], references: [id])
+  waiterId     String?
+  waiter       User?       @relation("WaiterOrders", fields: [waiterId], references: [id])
+  customerName String?
+  status       OrderStatus @default(PENDING)
+  notes        String?
+  subtotal     Float       @default(0)
+  tax          Float       @default(0)
+  total        Float       @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@index([tableId])
+  @@index([waiterId])
+  @@index([status])
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int      @default(1)
+  unitPrice  Float
+  notes      String?
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+
+  @@index([orderId])
+  @@index([menuItemId])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String
+  order         Order         @relation(fields: [orderId], references: [id])
+  customerName  String
+  method        PaymentMethod @default(CARD)
+  amountPaid    Float
+  tipAmount     Float         @default(0)
+  processedById String
+  processedBy   User          @relation("CashierPayments", fields: [processedById], references: [id])
+  referenceNo   String?
+  createdAt     DateTime      @default(now())
+
+  @@index([orderId])
+  @@index([processedById])
+}
+
+model ShiftLog {
+  id          String    @id @default(uuid())
+  waiterId    String
+  waiter      User      @relation(fields: [waiterId], references: [id])
+  startTime   DateTime  @default(now())
+  endTime     DateTime?
+  totalOrders Int       @default(0)
+  totalSales  Float     @default(0)
+  status      String    @default("OPEN")
+
+  @@index([waiterId])
+}
+
+model DailyGoal {
+  id             String   @id @default(uuid())
+  date           String   @unique
+  targetSales    Float    @default(5000.0)
+  targetOrders   Int      @default(100)
+  achievedSales  Float    @default(0.0)
+  achievedOrders Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
