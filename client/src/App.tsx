@@ -17,6 +17,7 @@ import { OrderModal } from './components/orders/OrderModal';
 import { PaymentModal } from './components/payment/PaymentModal';
 import { GamificationBoard } from './components/goals/GamificationBoard';
 import { LoginModal } from './components/auth/LoginModal';
+import { POSBottomToolbar } from './components/pos/POSBottomToolbar';
 import { useRestaurantStore } from './store/useRestaurantStore';
 import { useAuthStore } from './store/useAuthStore';
 import { useSocket } from './context/SocketContext';
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="w-screen h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
+      {/* Top Header Navbar */}
       <header className="h-16 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2.5">
@@ -71,9 +73,9 @@ export const App: React.FC = () => {
             </div>
             <div>
               <h1 className="font-black text-lg tracking-tight text-white flex items-center gap-1.5">
-                Plate<span className="text-amber-400">OS</span> <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">3D</span>
+                Plate<span className="text-amber-400">OS</span> <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">POS 3D</span>
               </h1>
-              <p className="text-[10px] text-slate-400 -mt-0.5">Sistema Operativo de Restaurantes</p>
+              <p className="text-[10px] text-slate-400 -mt-0.5">Terminal Táctil Operativa de Restaurantes</p>
             </div>
           </div>
 
@@ -103,7 +105,7 @@ export const App: React.FC = () => {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Layers className="w-4 h-4" /> Salón 3D
+            <Layers className="w-4 h-4" /> Plano 3D
           </button>
           <button
             onClick={() => setActiveTab('kitchen')}
@@ -170,6 +172,7 @@ export const App: React.FC = () => {
         </div>
       </header>
 
+      {/* Alert Banner Notification */}
       {alertNotification && (
         <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-2.5 text-slate-950 font-black text-xs flex items-center justify-between shadow-xl animate-in slide-in-from-top duration-300 z-30">
           <div className="flex items-center gap-2">
@@ -185,7 +188,8 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      <main className="flex-1 overflow-hidden relative p-4">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-hidden relative p-3">
         {activeTab === '3d' && (
           <RestaurantFloor3D tables={tables} onSelectTable={handleSelectTableFrom3D} />
         )}
@@ -193,7 +197,7 @@ export const App: React.FC = () => {
         {activeTab === 'kitchen' && <KDSBoard />}
 
         {activeTab === 'payments' && (
-          <div className="w-full h-full p-6 bg-slate-950 overflow-y-auto">
+          <div className="w-full h-full p-6 bg-slate-950 overflow-y-auto rounded-2xl border border-slate-800">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-3xl font-extrabold text-white flex items-center gap-3">
@@ -245,6 +249,16 @@ export const App: React.FC = () => {
         {activeTab === 'goals' && <GamificationBoard />}
       </main>
 
+      {/* POS Action Toolbar at the bottom (Inspirado en la pantalla BeatlePOS / ICG) */}
+      {activeTab === '3d' && (
+        <POSBottomToolbar
+          onOpenOrderModal={() => selectedTable && openOrderModal(selectedTable)}
+          onOpenPaymentModal={() => selectedTable && openPaymentModal(selectedTable)}
+          onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        />
+      )}
+
+      {/* Modals */}
       {isOrderModalOpen && selectedTable && (
         <OrderModal
           table={selectedTable}
