@@ -65,18 +65,19 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
   ];
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl select-none animate-in fade-in duration-300 relative overflow-hidden">
+    <div className="w-screen h-screen min-h-screen fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black select-none animate-in fade-in duration-300 overflow-hidden">
       
-      {/* ── 3D AMBIENT LIGHT ORBS IN BACKGROUND ── */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-amber-500/20 blur-[130px] pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-indigo-600/25 blur-[140px] pointer-events-none animate-pulse" />
+      {/* ── RICH LUXURY 3D BACKGROUND AMBIENT ORBS ── */}
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-amber-500/15 blur-[150px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-[160px] pointer-events-none animate-pulse" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-slate-800/10 blur-[120px] pointer-events-none" />
 
-      {/* ── 3D FLOATING GLASS CONTAINER WITH DEEP BOX SHADOW & BEVEL GLOW ── */}
-      <div className="w-full max-w-4xl rounded-[2.5rem] border-t-2 border-t-amber-400/50 border-x border-slate-700/80 border-b-2 border-b-slate-950 p-6 md:p-8 bg-slate-900/90 text-white flex flex-col gap-6 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(245,158,11,0.25)] relative z-10">
+      {/* ── PERFECTLY CENTERED 3D FLOATING GLASS CONTAINER ── */}
+      <div className="w-full max-w-4xl my-auto mx-auto rounded-[2.5rem] border-t-2 border-t-amber-400/60 border-x border-slate-700/80 border-b-2 border-b-slate-950 p-6 md:p-8 bg-slate-900/90 text-white flex flex-col gap-6 shadow-[0_35px_100px_rgba(0,0,0,0.95),0_0_70px_rgba(245,158,11,0.25)] relative z-10">
         
         {/* Header Branding */}
         <div className="flex flex-col items-center text-center border-b border-slate-800/80 pb-5">
-          <div className="p-3.5 rounded-3xl bg-gradient-to-tr from-amber-500 to-red-600 text-white shadow-xl shadow-amber-500/30 mb-2.5 hover:scale-105 transition-transform">
+          <div className="p-3.5 rounded-3xl bg-gradient-to-tr from-amber-500 via-orange-500 to-red-600 text-white shadow-xl shadow-amber-500/30 mb-2.5 hover:scale-105 transition-transform">
             <UtensilsCrossed className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
