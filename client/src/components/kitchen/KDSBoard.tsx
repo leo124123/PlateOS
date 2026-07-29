@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { ChefHat, Clock, CheckCircle2, AlertCircle, Play, Timer, Sparkles, Eye } from 'lucide-react';
+import { ChefHat, Clock, CheckCircle2, AlertCircle, Play, Timer, Sparkles, Eye, Truck } from 'lucide-react';
 import { Order } from '../../types';
 import api from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
 import { useAuthStore } from '../../store/useAuthStore';
 
+export interface TimerData {
+  start: number;
+  duration: number;
+  status?: string;
+  readyAt?: number;
+}
+
 // Helper to load shared active timers from localStorage
-const getSavedTimers = (): Record<string, { start: number; duration: number }> => {
+const getSavedTimers = (): Record<string, TimerData> => {
   try {
     const raw = localStorage.getItem('plateos_active_timers');
     return raw ? JSON.parse(raw) : {};
@@ -15,7 +22,7 @@ const getSavedTimers = (): Record<string, { start: number; duration: number }> =
   }
 };
 
-const saveTimersToStorage = (timers: Record<string, { start: number; duration: number }>) => {
+const saveTimersToStorage = (timers: Record<string, TimerData>) => {
   try {
     localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
   } catch (e) {}
@@ -25,7 +32,7 @@ export const KDSBoard: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [prepTimes, setPrepTimes] = useState<Record<string, number>>({});
-  const [activeTimers, setActiveTimers] = useState<Record<string, { start: number; duration: number }>>(getSavedTimers);
+  const [activeTimers, setActiveTimers] = useState<Record<string, TimerData>>(getSavedTimers);
   
   const { socket } = useSocket();
   const { user } = useAuthStore();
@@ -72,14 +79,37 @@ export const KDSBoard: React.FC = () => {
         });
       });
 
-      // 3. Listen when order is marked ready to clear active timer
+      // 3. Listen when order is marked ready to update active timer status to READY_FOR_DELIVERY
       socket.on('order:ready', ({ orderId }: { orderId: string }) => {
+        setActiveTimers((prev) => {
+          const updated = {
+            ...prev,
+            [orderId]: {
+              ...(prev[orderId] || { start: Date.now(), duration: 15 * 60 * 1000 }),
+              status: 'READY_FOR_DELIVERY',
+              readyAt: Date.now(),
+            },
+          };
+          saveTimersToStorage(updated);
+          return updated;
+        });
+
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, status: 'READY_FOR_DELIVERY' } : o))
+        );
+        fetchKitchenOrders();
+      });
+
+      // 4. Listen when order is served by waiter to clear active timer and remove order
+      socket.on('order:served', ({ orderId }: { orderId: string }) => {
         setActiveTimers((prev) => {
           const updated = { ...prev };
           delete updated[orderId];
           saveTimersToStorage(updated);
           return updated;
         });
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+        fetchKitchenOrders();
       });
     }
 
@@ -89,6 +119,7 @@ export const KDSBoard: React.FC = () => {
         socket.off('kitchen:order_new');
         socket.off('kitchen:prep_started');
         socket.off('order:ready');
+        socket.off('order:served');
       }
       clearInterval(interval);
     };
@@ -135,7 +166,9 @@ export const KDSBoard: React.FC = () => {
   const handleMarkAsReady = async (order: Order) => {
     try {
       await api.patch(`/orders/${order.id}/status`, { status: 'READY_FOR_DELIVERY' });
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, status: 'READY_FOR_DELIVERY' } : o))
+      );
 
       const updatedTimers = {
         ...activeTimers,
@@ -161,6 +194,28 @@ export const KDSBoard: React.FC = () => {
     }
   };
 
+  const handleDeliverOrder = async (order: Order) => {
+    try {
+      await api.patch(`/orders/${order.id}/status`, { status: 'SERVED' });
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+
+      const updatedTimers = { ...activeTimers };
+      delete updatedTimers[order.id];
+      setActiveTimers(updatedTimers as any);
+      saveTimersToStorage(updatedTimers);
+
+      if (socket) {
+        socket.emit('order:served', {
+          orderId: order.id,
+          tableId: order.tableId,
+          tableNumber: order.table?.number || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Error al entregar pedido', error);
+    }
+  };
+
   return (
     <div className="w-full h-full flex flex-col p-6 bg-slate-950 overflow-y-auto select-none">
       {/* ── HEADER ── */}
@@ -183,7 +238,7 @@ export const KDSBoard: React.FC = () => {
           <p className="text-sm text-slate-400 mt-1">
             {isChef
               ? 'Los cocineros asignan el tiempo estimado de cocción y notifican al mesero al terminar.'
-              : 'Vista de seguimiento para meseros: Muestra el tiempo de cocción en tiempo real asignado por el chef y la barra de avance.'}
+              : 'Vista de seguimiento para meseros: Muestra el tiempo de cocción en tiempo real y alerta cuándo la cocción está finalizada para llevar el pedido.'}
           </p>
         </div>
 
@@ -214,6 +269,8 @@ export const KDSBoard: React.FC = () => {
 
             // Exact verification per specific Order ID
             const timerInfo = activeTimers[order.id];
+            const isFinished = order.status === 'READY_FOR_DELIVERY' || timerInfo?.status === 'READY_FOR_DELIVERY';
+
             let progressPercent = 0;
             let remainingSeconds = 0;
 
@@ -231,14 +288,18 @@ export const KDSBoard: React.FC = () => {
             return (
               <div
                 key={order.id}
-                className="bg-slate-900/90 rounded-3xl p-5 border border-slate-800 flex flex-col justify-between hover:border-amber-500/50 transition-all shadow-2xl group"
+                className={`bg-slate-900/90 rounded-3xl p-5 border flex flex-col justify-between transition-all shadow-2xl group ${
+                  isFinished ? 'border-emerald-500/70 shadow-emerald-500/10' : 'border-slate-800 hover:border-amber-500/50'
+                }`}
               >
                 <div>
                   {/* Order Card Header */}
                   <div className="flex justify-between items-center pb-3 border-b border-slate-800">
                     <div>
-                      <span className="text-xs font-black px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">
-                        Mesa #{order.table?.number || '?'}
+                      <span className={`text-xs font-black px-2.5 py-1 rounded-xl border uppercase ${
+                        isFinished ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                      }`}>
+                        Mesa #{order.table?.number || '?'} {isFinished ? '— ¡LISTO!' : ''}
                       </span>
                       <h3 className="font-black text-lg text-white mt-1">
                         Pedido #{order.orderNumber}
@@ -290,7 +351,14 @@ export const KDSBoard: React.FC = () => {
                 <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-2">
                   {isChef ? (
                     /* CHEF CONTROLS */
-                    !timerInfo ? (
+                    isFinished ? (
+                      <div className="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-center">
+                        <span className="text-xs font-black text-emerald-300 flex items-center justify-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Cocción Finalizada — Notificado al Mozo
+                        </span>
+                        <p className="text-[10px] text-emerald-400/70 mt-0.5">El mesero entregará el pedido.</p>
+                      </div>
+                    ) : !timerInfo ? (
                       <div className="flex flex-col gap-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
                           <Timer className="w-3.5 h-3.5 text-amber-400" /> Asignar Tiempo Estimado:
@@ -352,7 +420,22 @@ export const KDSBoard: React.FC = () => {
                     )
                   ) : (
                     /* WAITER REAL-TIME SYNCHRONIZED VIEW */
-                    !timerInfo ? (
+                    isFinished ? (
+                      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 shadow-lg shadow-emerald-500/10">
+                        <div className="flex justify-between items-center text-xs font-black text-emerald-300">
+                          <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 animate-bounce" />
+                            ✅ ¡COCCIÓN FINALIZADA! Listo para Llevar
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDeliverOrder(order)}
+                          className="w-full mt-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-102"
+                        >
+                          🚚 Llevar Pedido a Mesa #{order.table?.number || ''}
+                        </button>
+                      </div>
+                    ) : !timerInfo ? (
                       <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
                         <span className="text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5">
                           <Clock className="w-4 h-4 animate-pulse" /> Esperando que el Cocinero asigne tiempo e inicie...
