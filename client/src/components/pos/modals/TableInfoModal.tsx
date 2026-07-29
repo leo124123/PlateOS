@@ -1,5 +1,5 @@
-import React from 'react';
-import { Info, Clock, User, DollarSign, UtensilsCrossed, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Info, Clock, User, DollarSign, UtensilsCrossed, X, ChefHat, Timer } from 'lucide-react';
 import { TableItem } from '../../../types';
 
 interface TableInfoModalProps {
@@ -8,7 +8,21 @@ interface TableInfoModalProps {
 }
 
 export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }) => {
-  // Mock table active order items
+  const [prepProgress, setPrepProgress] = useState(65);
+  const [remSeconds, setRemSeconds] = useState(240);
+
+  // Live countdown ticker simulation for waiters
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRemSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+      setPrepProgress((prev) => (prev < 100 ? prev + 1 : 100));
+    }, 1200);
+    return () => clearInterval(timer);
+  }, []);
+
+  const remMin = Math.floor(remSeconds / 60);
+  const remSec = remSeconds % 60;
+
   const mockItems = [
     { name: 'Lomo Saltado Gourmet', qty: 2, price: 24.50 },
     { name: 'Ceviche Mixto Tradicional', qty: 1, price: 28.00 },
@@ -30,7 +44,7 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
             </div>
             <div>
               <h3 className="text-lg font-black tracking-tight text-white">Detalle de Mesa #{table.number}</h3>
-              <p className="text-xs text-slate-400">Información del estado y comanda activa</p>
+              <p className="text-xs text-slate-400">Información del estado y comanda activa (Vista Mozo)</p>
             </div>
           </div>
           <button
@@ -64,6 +78,35 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
             <span className="text-sm font-extrabold text-emerald-400">${total.toFixed(2)}</span>
           </div>
         </div>
+
+        {/* ── KITCHEN PREPARATION TIMER & PROGRESS BAR FOR WAITERS ── */}
+        {table.status !== 'AVAILABLE' && (
+          <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-col gap-2 shadow-inner">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-black text-amber-400 flex items-center gap-1.5">
+                <ChefHat className="w-4 h-4 text-amber-500 animate-bounce" />
+                Estado en Cocina: En Preparación
+              </span>
+              <span className="font-black text-white flex items-center gap-1">
+                <Timer className="w-3.5 h-3.5 text-cyan-400" />
+                Quedan: {remMin}m {remSec < 10 ? `0${remSec}` : remSec}s
+              </span>
+            </div>
+
+            {/* Waiter Progress Bar (Barra cargando hasta el tiempo establecido) */}
+            <div className="w-full bg-slate-900 rounded-full h-4 p-0.5 border border-slate-800 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2 text-[9px] font-black text-slate-950 shadow-md shadow-amber-500/30"
+                style={{ width: `${prepProgress}%` }}
+              >
+                {prepProgress}%
+              </div>
+            </div>
+            <span className="text-[10px] text-slate-400 italic">
+              ℹ️ El cocinero marcará el platillo como listo cuando finalice la preparación.
+            </span>
+          </div>
+        )}
 
         {/* Active Items List */}
         <div className="flex flex-col gap-2">
