@@ -3,14 +3,15 @@ import {
   CreditCard,
   Utensils,
   RefreshCw,
-  Users,
-  Bell,
   UserCheck,
   Info,
   DollarSign,
   Scissors,
   Trash2,
-  BookOpen
+  BookOpen,
+  BellRing,
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { useRestaurantStore } from '../../store/useRestaurantStore';
 
@@ -18,114 +19,157 @@ interface POSBottomToolbarProps {
   onOpenOrderModal: () => void;
   onOpenPaymentModal: () => void;
   onOpenLoginModal: () => void;
+  onOpenTransferModal: () => void;
+  onOpenSplitModal: () => void;
+  onOpenInfoModal: () => void;
+  onOpenSubtotalModal: () => void;
 }
 
 export const POSBottomToolbar: React.FC<POSBottomToolbarProps> = ({
   onOpenOrderModal,
   onOpenPaymentModal,
   onOpenLoginModal,
+  onOpenTransferModal,
+  onOpenSplitModal,
+  onOpenInfoModal,
+  onOpenSubtotalModal,
 }) => {
-  const { selectedTable } = useRestaurantStore();
+  const { selectedTable, setSelectedTable } = useRestaurantStore();
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'ORDER_PENDING':
+        return { label: 'Comanda', color: 'bg-amber-500 text-black' };
+      case 'EATING':
+      case 'OCCUPIED':
+        return { label: 'Ocupada', color: 'bg-red-500 text-white' };
+      case 'BILL_REQUESTED':
+        return { label: 'Cuenta', color: 'bg-yellow-400 text-black' };
+      case 'CLEANING':
+        return { label: 'Limpieza', color: 'bg-purple-500 text-white' };
+      case 'AVAILABLE':
+        return { label: 'Libre', color: 'bg-emerald-500 text-white' };
+      default:
+        return { label: 'Ninguna', color: 'bg-slate-700 text-slate-300' };
+    }
+  };
+
+  const badge = getStatusBadge(selectedTable?.status);
 
   return (
-    <div className="w-full bg-slate-900 border-t-2 border-slate-700 p-2 px-3 flex items-center justify-between gap-2 shadow-2xl z-20">
-      {/* Table Status Summary */}
-      <div className="flex items-center gap-3 pr-3 border-r border-slate-700 shrink-0">
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">
-            Mesa Seleccionada
-          </span>
-          <span className="text-sm font-black text-amber-400">
-            {selectedTable ? `Mesa #${selectedTable.number} (${selectedTable.status})` : 'Ninguna'}
-          </span>
+    <div className="w-full bg-slate-950/90 backdrop-blur-2xl border-t border-slate-800/80 p-2 px-3 flex items-center justify-between gap-3 shadow-2xl z-20 select-none">
+      {/* ── 1. SELECTED TABLE STATUS CARD ── */}
+      <div className="flex items-center gap-3 pr-3 border-r border-slate-800/80 shrink-0">
+        <div className="flex items-center gap-2.5 p-1.5 px-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 shadow-lg">
+          <div className="p-2 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400">
+            <Layers className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] uppercase font-black tracking-widest text-slate-400 flex items-center gap-1">
+              Mesa Seleccionada
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black text-amber-400 tracking-tight">
+                {selectedTable ? `Mesa #${selectedTable.number}` : 'Ninguna'}
+              </span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${badge.color}`}>
+                {badge.label}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* POS Action Buttons Bar (Estilo BeatlePOS / ICG Software) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none">
+      {/* ── 2. POS ACTION BUTTONS BAR (Version 2 Suite) ── */}
+      <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
+        {/* PRIMARY ACTIONS */}
         <button
           onClick={onOpenOrderModal}
           disabled={!selectedTable}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0 shadow-md border border-blue-400"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wide transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:pointer-events-none shrink-0 shadow-lg shadow-blue-600/30 border border-blue-400/40"
         >
-          <Utensils className="w-4 h-4 text-white" />
+          <Utensils className="w-4 h-4 text-white animate-pulse" />
           Nueva Comanda
         </button>
 
         <button
           onClick={onOpenPaymentModal}
           disabled={!selectedTable || selectedTable.status === 'AVAILABLE'}
-          className="flex flex-col items-center justify-center px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black uppercase transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0 shadow-lg border border-emerald-400"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black uppercase tracking-wide transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:pointer-events-none shrink-0 shadow-lg shadow-emerald-600/30 border border-emerald-400/40"
         >
           <CreditCard className="w-4 h-4 text-emerald-200" />
           Cobrar
         </button>
 
+        {/* SECONDARY POS ACTIONS */}
         <button
-          onClick={() => alert('Función: Visualizar Subtotal de la Mesa')}
+          onClick={onOpenSubtotalModal}
           disabled={!selectedTable || selectedTable.status === 'AVAILABLE'}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-[11px] font-black uppercase transition-all disabled:opacity-40 shrink-0 border border-teal-400"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-950/80 hover:bg-teal-900/80 text-teal-300 text-xs font-black uppercase tracking-wide transition-all hover:scale-105 disabled:opacity-40 shrink-0 border border-teal-500/40 shadow-md"
         >
-          <DollarSign className="w-4 h-4 text-teal-200" />
+          <DollarSign className="w-3.5 h-3.5 text-teal-400" />
           Subtotal
         </button>
 
         <button
-          onClick={() => alert('Función: Cambiar / Mover Mesa')}
+          onClick={onOpenTransferModal}
           disabled={!selectedTable || selectedTable.status === 'AVAILABLE'}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black uppercase transition-all disabled:opacity-40 shrink-0 border border-indigo-400"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-950/80 hover:bg-indigo-900/80 text-indigo-300 text-xs font-black uppercase tracking-wide transition-all hover:scale-105 disabled:opacity-40 shrink-0 border border-indigo-500/40 shadow-md"
         >
-          <RefreshCw className="w-4 h-4 text-indigo-200" />
+          <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
           Cambiar Mesa
         </button>
 
         <button
-          onClick={() => alert('Función: Fraccionar / Split de Cuenta')}
+          onClick={onOpenSplitModal}
           disabled={!selectedTable}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-black uppercase transition-all disabled:opacity-40 shrink-0 border border-purple-400"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900/80 text-purple-300 text-xs font-black uppercase tracking-wide transition-all hover:scale-105 disabled:opacity-40 shrink-0 border border-purple-500/40 shadow-md"
         >
-          <Scissors className="w-4 h-4 text-purple-200" />
+          <Scissors className="w-3.5 h-3.5 text-purple-400" />
           Fraccionar
         </button>
 
         <button
           onClick={onOpenLoginModal}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-black uppercase transition-all shrink-0 border border-amber-400"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-black uppercase tracking-wide transition-all hover:scale-105 shrink-0 border border-amber-400/50 shadow-md"
         >
           <UserCheck className="w-4 h-4 text-amber-200" />
           Cambiar Vendedor
         </button>
 
         <button
-          onClick={() => alert('🔔 Notificación de marcha enviada a cocina')}
+          onClick={() => alert('🔔 ¡Orden marchada a cocina con éxito!')}
           disabled={!selectedTable || selectedTable.status === 'AVAILABLE'}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-black uppercase transition-all disabled:opacity-40 shrink-0 border border-rose-400"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-950/80 hover:bg-rose-900/80 text-rose-300 text-xs font-black uppercase tracking-wide transition-all hover:scale-105 disabled:opacity-40 shrink-0 border border-rose-500/40 shadow-md"
         >
-          <Bell className="w-4 h-4 text-rose-200" />
+          <BellRing className="w-3.5 h-3.5 text-rose-400" />
           Marchar Orden
         </button>
 
+        {/* UTILITY ACTIONS */}
         <button
-          onClick={() => alert('Función: Limpiar selección de mesa')}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] font-black uppercase transition-all shrink-0 border border-slate-500"
+          onClick={() => setSelectedTable(null)}
+          disabled={!selectedTable}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 text-xs font-black uppercase tracking-wide transition-all disabled:opacity-40 shrink-0 border border-slate-700 shadow-md"
         >
-          <Trash2 className="w-4 h-4 text-slate-300" />
+          <Trash2 className="w-3.5 h-3.5 text-slate-400" />
           Limpiar
         </button>
 
         <button
-          onClick={() => alert('Información del sistema POS: Versión BeatlePOS 3D')}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-[11px] font-black uppercase transition-all shrink-0 border border-cyan-500"
+          onClick={onOpenInfoModal}
+          disabled={!selectedTable}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 text-xs font-black uppercase tracking-wide transition-all hover:scale-105 disabled:opacity-40 shrink-0 border border-cyan-500/40 shadow-md"
         >
-          <Info className="w-4 h-4 text-cyan-200" />
+          <Info className="w-3.5 h-3.5 text-cyan-400" />
           Info Mesa
         </button>
 
         <button
           onClick={onOpenOrderModal}
-          className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-black uppercase transition-all shrink-0 border border-amber-500/40"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-black uppercase tracking-wide transition-all shrink-0 border border-amber-500/40 shadow-md"
         >
-          <BookOpen className="w-4 h-4 text-amber-300" />
+          <BookOpen className="w-3.5 h-3.5 text-amber-400" />
           Menú
         </button>
       </div>

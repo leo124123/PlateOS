@@ -249,12 +249,16 @@ export const App: React.FC = () => {
         {activeTab === 'goals' && <GamificationBoard />}
       </main>
 
-      {/* POS Action Toolbar at the bottom (Inspirado en la pantalla BeatlePOS / ICG) */}
+      {/* POS Action Toolbar at the bottom */}
       {activeTab === '3d' && (
         <POSBottomToolbar
           onOpenOrderModal={() => selectedTable && openOrderModal(selectedTable)}
           onOpenPaymentModal={() => selectedTable && openPaymentModal(selectedTable)}
           onOpenLoginModal={() => setIsLoginModalOpen(true)}
+          onOpenTransferModal={() => selectedTable && setIsTransferModalOpen(true)}
+          onOpenSplitModal={() => selectedTable && setIsSplitModalOpen(true)}
+          onOpenInfoModal={() => selectedTable && setIsTableInfoModalOpen(true)}
+          onOpenSubtotalModal={() => selectedTable && setIsSubtotalModalOpen(true)}
         />
       )}
 
@@ -276,6 +280,39 @@ export const App: React.FC = () => {
 
       {isLoginModalOpen && (
         <LoginModal onClose={() => setIsLoginModalOpen(false)} />
+      )}
+
+      {isTransferModalOpen && selectedTable && (
+        <TransferTableModal
+          currentTable={selectedTable}
+          tables={tables}
+          onClose={() => setIsTransferModalOpen(false)}
+          onConfirmTransfer={() => {
+            fetchTables();
+            setIsTransferModalOpen(false);
+          }}
+        />
+      )}
+
+      {isSplitModalOpen && selectedTable && (
+        <SplitBillModal
+          table={selectedTable}
+          onClose={() => setIsSplitModalOpen(false)}
+        />
+      )}
+
+      {isTableInfoModalOpen && selectedTable && (
+        <TableInfoModal
+          table={selectedTable}
+          onClose={() => setIsTableInfoModalOpen(false)}
+        />
+      )}
+
+      {isSubtotalModalOpen && selectedTable && (
+        <SubtotalPreviewModal
+          table={selectedTable}
+          onClose={() => setIsSubtotalModalOpen(false)}
+        />
       )}
     </div>
   );
