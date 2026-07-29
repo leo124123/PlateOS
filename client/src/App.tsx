@@ -16,6 +16,7 @@ import { KDSBoard } from './components/kitchen/KDSBoard';
 import { OrderModal } from './components/orders/OrderModal';
 import { PaymentModal } from './components/payment/PaymentModal';
 import { GamificationBoard } from './components/goals/GamificationBoard';
+import { CashierBoard } from './components/cashier/CashierBoard';
 import { LoginModal } from './components/auth/LoginModal';
 import { POSBottomToolbar } from './components/pos/POSBottomToolbar';
 import { TransferTableModal } from './components/pos/modals/TransferTableModal';
@@ -205,53 +206,12 @@ export const App: React.FC = () => {
         {activeTab === 'kitchen' && <KDSBoard />}
 
         {activeTab === 'payments' && (
-          <div className="w-full h-full p-6 bg-slate-950 overflow-y-auto rounded-2xl border border-slate-800">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-3xl font-extrabold text-white flex items-center gap-3">
-                  <Receipt className="text-emerald-400 w-9 h-9" /> Control de Caja y Cobros
-                </h2>
-                <p className="text-sm text-slate-400 mt-1">
-                  Selecciona una mesa ocupada para emitir la cuenta y procesar el cobro
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {tables.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => openPaymentModal(t)}
-                  className={`glass-panel p-5 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between ${
-                    t.status === 'BILL_REQUESTED'
-                      ? 'border-amber-500 bg-amber-500/10 hover:border-amber-400'
-                      : t.status === 'EATING' || t.status === 'OCCUPIED'
-                      ? 'border-blue-500/40 bg-blue-500/5 hover:border-blue-400'
-                      : 'border-slate-800 hover:border-slate-700 opacity-60'
-                  }`}
-                >
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-800">
-                    <span className="text-lg font-black text-white">Mesa {t.number}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-900 text-slate-300 font-extrabold uppercase border border-slate-800">
-                      {t.status}
-                    </span>
-                  </div>
-                  <div className="py-4 text-xs text-slate-400">
-                    Capacidad: <b>{t.capacity} personas</b>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openPaymentModal(t);
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 font-extrabold text-xs transition-all border border-emerald-500/30"
-                  >
-                    Procesar Cobro
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <CashierBoard
+            tables={tables}
+            onOpenPaymentModal={(table) => { setSelectedTable(table); openPaymentModal(table); }}
+            onOpenSubtotalModal={(table) => { setSelectedTable(table); setIsSubtotalModalOpen(true); }}
+            onOpenSplitModal={(table) => { setSelectedTable(table); setIsSplitModalOpen(true); }}
+          />
         )}
 
         {activeTab === 'goals' && <GamificationBoard />}
