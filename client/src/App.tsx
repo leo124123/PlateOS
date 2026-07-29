@@ -85,8 +85,13 @@ export const App: React.FC = () => {
     }
   };
 
+  // 🔒 STRICT MANDATORY LOGIN GUARD: Render ONLY the login portal when locked!
+  if (isAppLocked) {
+    return <MandatoryLoginPortal onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
-    <div className="w-screen h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
+    <div className="w-screen h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden font-sans select-none">
       {/* Top Header Navbar */}
       <header className="h-16 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-4">
@@ -194,11 +199,6 @@ export const App: React.FC = () => {
           )}
         </div>
       </header>
-
-      {/* Mandatory Login Portal Overlay */}
-      {isAppLocked && (
-        <MandatoryLoginPortal onLoginSuccess={handleLoginSuccess} />
-      )}
 
       {/* Alert Banner Notification */}
       {alertNotification && (
