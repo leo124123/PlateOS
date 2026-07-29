@@ -39,10 +39,10 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
 
     const success = await loginWithPin(pinCode);
     if (success) {
-      const role: Role = pinCode === '3333' ? 'KITCHEN' : pinCode === '5555' ? 'CASHIER' : pinCode === '1111' ? 'WAITER' : 'ADMIN';
+      const role: Role = pinCode === '3333' ? 'KITCHEN' : pinCode === '5555' ? 'CASHIER' : (pinCode === '1111' || pinCode === '8091') ? 'WAITER' : 'ADMIN';
       onLoginSuccess(role);
     } else {
-      setErrorMessage('PIN Incorrecto. Prueba 1234 (Admin), 1111 (Mozo), 3333 (Cocinero), 5555 (Cajero)');
+      setErrorMessage('PIN Incorrecto. Prueba 8091 (Leonardo), 1234 (Admin), 1111 (Mozo), 3333 (Cocinero)');
       setPinCode('');
     }
   };
@@ -58,7 +58,8 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
   };
 
   const staffProfiles = [
-    { name: 'Samuel Guance', role: 'WAITER' as Role, roleLabel: 'Mesero / Mozo', pin: '1111', icon: UserCheck, color: 'from-blue-600 to-indigo-700 border-l-4 border-l-blue-400', badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+    { name: 'Leonardo Luis', role: 'WAITER' as Role, roleLabel: 'Mesero / Mozo', pin: '8091', icon: UserCheck, color: 'from-blue-600 to-indigo-700 border-l-4 border-l-blue-400', badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+    { name: 'Samuel Guance', role: 'WAITER' as Role, roleLabel: 'Mesero / Mozo', pin: '1111', icon: UserCheck, color: 'from-cyan-600 to-blue-700 border-l-4 border-l-cyan-400', badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' },
     { name: 'Chef Gordon', role: 'KITCHEN' as Role, roleLabel: 'Cocinero / Chef', pin: '3333', icon: ChefHat, color: 'from-amber-600 to-orange-600 border-l-4 border-l-amber-400', badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
     { name: 'Carlos Mendoza', role: 'CASHIER' as Role, roleLabel: 'Cajero / Facturación', pin: '5555', icon: CreditCard, color: 'from-emerald-600 to-teal-700 border-l-4 border-l-emerald-400', badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
     { name: 'Administrador', role: 'ADMIN' as Role, roleLabel: 'Gerente (Acceso Total)', pin: '1234', icon: ShieldCheck, color: 'from-purple-600 to-pink-700 border-l-4 border-l-purple-400', badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },

@@ -22,6 +22,18 @@ async function main() {
     },
   });
 
+  const mesero = await prisma.user.upsert({ 
+    where: { email: 'mesero2@plateos.com' },
+    update: { pinCode: '8091', name: 'Leonardo Luis (Mesero)' },
+    create: {
+      name: 'Leonardo Luis (Mesero)',
+      email: 'mesero2@plateos.com',
+      password: staffPassword,
+      pinCode: '8091',
+      role: 'WAITER',
+    },
+  });
+
   const waiter = await prisma.user.upsert({
     where: { email: 'mesero@plateos.com' },
     update: {},
