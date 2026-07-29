@@ -17,29 +17,29 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
   const [isCallingWaiter, setIsCallingWaiter] = useState(false);
   const { socket } = useSocket();
 
-  // Visual Colors matching POS Reference Image (Coral Red table tops, Blue status badges, Green available)
-  const getTableColor = () => {
+  // Status colors & text mapping
+  const getStatusInfo = () => {
     switch (table.status) {
       case 'ORDER_PENDING':
-        return '#f97316'; // Orange
+        return { color: '#f97316', label: 'Comanda', badgeBg: 'bg-amber-600' };
       case 'EATING':
       case 'OCCUPIED':
-        return '#ef4444'; // Bright POS Coral Red
+        return { color: '#ef4444', label: 'Ocupada', badgeBg: 'bg-red-600' };
       case 'BILL_REQUESTED':
-        return '#eab308'; // Yellow
+        return { color: '#eab308', label: 'Cuenta', badgeBg: 'bg-yellow-500' };
       case 'CLEANING':
-        return '#a855f7'; // Purple
+        return { color: '#a855f7', label: 'Limpieza', badgeBg: 'bg-purple-600' };
       case 'AVAILABLE':
       default:
-        return '#10b981'; // Green
+        return { color: '#10b981', label: 'Libre', badgeBg: 'bg-emerald-600' };
     }
   };
 
-  const mainColor = getTableColor();
+  const statusInfo = getStatusInfo();
 
   useFrame(({ clock }) => {
     if (hovered && tableGroupRef.current) {
-      tableGroupRef.current.position.y = Math.sin(clock.getElapsedTime() * 6) * 0.04 + 0.08;
+      tableGroupRef.current.position.y = Math.sin(clock.getElapsedTime() * 6) * 0.05 + 0.08;
     } else if (tableGroupRef.current) {
       tableGroupRef.current.position.y = 0;
     }
@@ -73,60 +73,127 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
         document.body.style.cursor = 'auto';
       }}
     >
-      {/* Halo Base Ring */}
+      {/* Halo Base Ring with Status Color */}
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.15, 1.4, 32]} />
+        <ringGeometry args={[1.2, 1.45, 32]} />
         <meshBasicMaterial
-          color={isCallingWaiter ? '#f43f5e' : mainColor}
+          color={isCallingWaiter ? '#f43f5e' : statusInfo.color}
           side={THREE.DoubleSide}
           transparent
           opacity={hovered || isCallingWaiter ? 0.95 : 0.65}
         />
       </mesh>
 
-      {/* Table Wooden Leg */}
-      <mesh position={[0, 0.4, 0]}>
-        <cylinderGeometry args={[0.09, 0.13, 0.8, 16]} />
-        <meshStandardMaterial color="#582f0e" roughness={0.3} />
-      </mesh>
-
-      {/* Table Base Foot */}
+      {/* Table Heavy Metallic Base Stand */}
       <mesh position={[0, 0.05, 0]}>
-        <cylinderGeometry args={[0.42, 0.48, 0.08, 16]} />
-        <meshStandardMaterial color="#331800" roughness={0.4} />
+        <cylinderGeometry args={[0.42, 0.48, 0.08, 20]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} />
+      </mesh>
+      {/* Metallic Center Pillar Leg */}
+      <mesh position={[0, 0.42, 0]}>
+        <cylinderGeometry args={[0.08, 0.12, 0.75, 16]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.78, 0]}>
+        <boxGeometry args={[0.9, 0.04, 0.9]} />
+        <meshStandardMaterial color="#f59e0b" metalness={0.8} />
       </mesh>
 
-      {/* Table Top Surface (Red / Coral tablecloth inspired by POS reference image) */}
+      {/* Realistic Table Top Surface (Dark Mahogany Wood Top with Beveled Edges) */}
       <mesh position={[0, 0.82, 0]}>
         {table.shape === 'SQUARE' ? (
-          <boxGeometry args={[1.6, 0.08, 1.6]} />
+          <boxGeometry args={[1.65, 0.07, 1.65]} />
         ) : table.shape === 'RECTANGLE' ? (
-          <boxGeometry args={[2.4, 0.08, 1.3]} />
+          <boxGeometry args={[2.45, 0.07, 1.35]} />
         ) : (
-          <cylinderGeometry args={[0.95, 0.95, 0.08, 32]} />
+          <cylinderGeometry args={[0.98, 0.98, 0.07, 32]} />
         )}
-        <meshStandardMaterial color={hovered ? '#fca5a5' : mainColor} roughness={0.2} metalness={0.1} />
+        <meshStandardMaterial color="#4a2411" roughness={0.25} metalness={0.05} />
       </mesh>
 
-      {/* Wooden Table Border Edge */}
-      <mesh position={[0, 0.82, 0]}>
+      {/* Table Tablecloth / Center Mat Overlay */}
+      <mesh position={[0, 0.86, 0]}>
         {table.shape === 'SQUARE' ? (
-          <boxGeometry args={[1.66, 0.06, 1.66]} />
+          <boxGeometry args={[1.4, 0.01, 1.4]} />
         ) : table.shape === 'RECTANGLE' ? (
-          <boxGeometry args={[2.46, 0.06, 1.36]} />
+          <boxGeometry args={[2.2, 0.01, 1.1]} />
         ) : (
-          <cylinderGeometry args={[0.98, 0.98, 0.06, 32]} />
+          <cylinderGeometry args={[0.82, 0.82, 0.01, 32]} />
         )}
-        <meshStandardMaterial color="#78350f" roughness={0.4} />
+        <meshStandardMaterial color={statusInfo.color} roughness={0.4} />
       </mesh>
 
-      {/* Chairs with Blue Seat Covers (Matching POS image chairs) */}
+      {/* Center Table Details (Salt/Pepper, Candle, Table Number Stand) */}
+      <group position={[0, 0.87, 0]}>
+        {/* Table Number Brass Stand */}
+        <mesh position={[0, 0.1, 0]}>
+          <cylinderGeometry args={[0.04, 0.06, 0.18, 12]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.9} roughness={0.1} />
+        </mesh>
+        <mesh position={[0, 0.22, 0]}>
+          <boxGeometry args={[0.18, 0.12, 0.02]} />
+          <meshStandardMaterial color="#0f172a" />
+        </mesh>
+
+        {/* Salt & Pepper Shakers */}
+        <mesh position={[0.2, 0.05, 0.1]}>
+          <cylinderGeometry args={[0.025, 0.03, 0.09, 8]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.1} />
+        </mesh>
+        <mesh position={[0.2, 0.05, -0.1]}>
+          <cylinderGeometry args={[0.025, 0.03, 0.09, 8]} />
+          <meshStandardMaterial color="#334155" roughness={0.3} />
+        </mesh>
+      </group>
+
+      {/* Place Settings (Plates, Cutlery, Glasses at Seats) */}
+      {[-0.55, 0.55].map((x, i) => (
+        <group key={`place-${i}`} position={[x, 0.87, 0]}>
+          <mesh position={[0, 0.01, 0]}>
+            <cylinderGeometry args={[0.18, 0.18, 0.015, 16]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.1} />
+          </mesh>
+          <mesh position={[0.25, 0.08, 0]}>
+            <cylinderGeometry args={[0.04, 0.03, 0.14, 10]} />
+            <meshStandardMaterial color="#38bdf8" transparent opacity={0.4} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Realistic Upholstered Chairs Around Table */}
       {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((angle, idx) => (
         <group key={idx} rotation={[0, angle, 0]}>
-          <mesh position={[0, 0.35, 0.95]}>
-            <boxGeometry args={[0.42, 0.7, 0.42]} />
-            <meshStandardMaterial color="#2563eb" roughness={0.4} />
-          </mesh>
+          <group position={[0, 0, 0.95]}>
+            {/* Chair Legs */}
+            <mesh position={[-0.18, 0.22, -0.18]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.44, 8]} />
+              <meshStandardMaterial color="#0f172a" metalness={0.8} />
+            </mesh>
+            <mesh position={[0.18, 0.22, -0.18]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.44, 8]} />
+              <meshStandardMaterial color="#0f172a" metalness={0.8} />
+            </mesh>
+            <mesh position={[-0.18, 0.22, 0.18]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.44, 8]} />
+              <meshStandardMaterial color="#0f172a" metalness={0.8} />
+            </mesh>
+            <mesh position={[0.18, 0.22, 0.18]}>
+              <cylinderGeometry args={[0.02, 0.02, 0.44, 8]} />
+              <meshStandardMaterial color="#0f172a" metalness={0.8} />
+            </mesh>
+
+            {/* Leather Cushion Seat */}
+            <mesh position={[0, 0.44, 0]}>
+              <boxGeometry args={[0.44, 0.08, 0.44]} />
+              <meshStandardMaterial color="#1e293b" roughness={0.3} />
+            </mesh>
+
+            {/* Wooden Backrest */}
+            <mesh position={[0, 0.72, 0.18]}>
+              <boxGeometry args={[0.44, 0.48, 0.06]} />
+              <meshStandardMaterial color="#582f0e" roughness={0.3} />
+            </mesh>
+          </group>
         </group>
       ))}
 
@@ -135,39 +202,38 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
         <CustomerAvatar3D status={table.status} tableNumber={table.number} />
       )}
 
-      {/* Blue POS Table Badge Overlay (Matching exact BeatlePOS table badges in reference image) */}
-      <Html position={[0, 1.5, 0]} center distanceFactor={13}>
-        <div className="flex flex-col items-center gap-1 pointer-events-auto">
-          {/* Blue POS Square Badge */}
+      {/* POS Style Floating Badge Overlay */}
+      <Html position={[0, 1.6, 0]} center distanceFactor={12}>
+        <div className="flex flex-col items-center gap-1 pointer-events-auto select-none">
           <div
-            className={`px-2.5 py-1 rounded-md shadow-2xl flex items-center gap-2 border border-blue-400 font-extrabold text-xs transition-all duration-200 ${
-              hovered ? 'scale-110 shadow-2xl' : ''
+            className={`px-3 py-1.5 rounded-xl shadow-2xl flex items-center gap-2 border border-white/20 font-extrabold text-xs transition-all duration-300 backdrop-blur-xl ${
+              hovered ? 'scale-110 shadow-blue-500/50' : ''
             }`}
             style={{
-              backgroundColor: '#1e40af', // POS Blue
+              backgroundColor: '#0f172a',
               color: '#ffffff',
             }}
           >
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: mainColor }} />
+            <span className="w-2.5 h-2.5 rounded-full shadow-sm animate-pulse" style={{ backgroundColor: statusInfo.color }} />
             <span className="font-black text-sm tracking-tight text-white">
-              {table.number}
+              Mesa {table.number}
             </span>
-            <span className="text-[10px] px-1 py-0.5 rounded bg-blue-900 text-blue-100 uppercase font-black">
-              {table.capacity}p
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${statusInfo.badgeBg} text-white uppercase font-black tracking-wide`}>
+              {statusInfo.label}
             </span>
           </div>
 
-          {/* Table Call Button */}
+          {/* Table Call Waiter Button */}
           {table.status !== 'AVAILABLE' && (
             <button
               onClick={handleCallWaiter}
-              className={`px-2 py-0.5 rounded text-[10px] font-black uppercase transition-all shadow-md ${
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all shadow-lg ${
                 isCallingWaiter
                   ? 'bg-rose-600 text-white animate-bounce shadow-rose-600/50'
-                  : 'bg-slate-900 text-amber-300 hover:bg-amber-400 hover:text-slate-950 border border-slate-700'
+                  : 'bg-slate-900/90 text-amber-300 hover:bg-amber-400 hover:text-slate-950 border border-amber-400/40'
               }`}
             >
-              {isCallingWaiter ? '🔔 ¡Llamando!' : '🛎️ Llamar'}
+              {isCallingWaiter ? '🔔 ¡Llamando!' : '🛎️ Llamar Mozo'}
             </button>
           )}
         </div>

@@ -65,16 +65,16 @@ async function main() {
     cashier: cashier.email,
   });
 
-  // 2. Create 3D Tables with Spread Out Coordinates across 4 Zones
+  // 2. Create 3D Tables — Single Comedor Layout (2 rows of 4)
   const defaultTables = [
-    { number: 1, name: 'Mesa 1 (Sala)', capacity: 4, positionX: -7.5, positionY: 0, positionZ: -7.5, rotationY: 0, shape: 'ROUND', status: 'AVAILABLE' },
-    { number: 2, name: 'Mesa 2 (Sala)', capacity: 2, positionX: -2.5, positionY: 0, positionZ: -7.5, rotationY: 0, shape: 'SQUARE', status: 'ORDER_PENDING' },
-    { number: 3, name: 'Mesa 3 (Terraza)', capacity: 6, positionX: 7.5, positionY: 0, positionZ: -7.5, rotationY: 0, shape: 'RECTANGLE', status: 'OCCUPIED' },
-    { number: 4, name: 'Mesa 4 (Terraza)', capacity: 4, positionX: 2.5, positionY: 0, positionZ: -7.5, rotationY: 0, shape: 'SQUARE', status: 'BILL_REQUESTED' },
-    { number: 5, name: 'Mesa 5 (Bar)', capacity: 2, positionX: -7.5, positionY: 0, positionZ: 7.5, rotationY: 0, shape: 'ROUND', status: 'EATING' },
-    { number: 6, name: 'Mesa 6 (Bar)', capacity: 4, positionX: -2.5, positionY: 0, positionZ: 7.5, rotationY: 0, shape: 'SQUARE', status: 'AVAILABLE' },
-    { number: 7, name: 'Mesa 7 (VIP)', capacity: 8, positionX: 7.5, positionY: 0, positionZ: 7.5, rotationY: 0, shape: 'RECTANGLE', status: 'CLEANING' },
-    { number: 8, name: 'Mesa 8 (VIP)', capacity: 4, positionX: 2.5, positionY: 0, positionZ: 7.5, rotationY: 0, shape: 'ROUND', status: 'AVAILABLE' },
+    { number: 1, name: 'Mesa 1', capacity: 4, positionX: -9,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'ROUND',     status: 'AVAILABLE' },
+    { number: 2, name: 'Mesa 2', capacity: 2, positionX: -3,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',     status: 'ORDER_PENDING' },
+    { number: 3, name: 'Mesa 3', capacity: 6, positionX: 3,   positionY: 0, positionZ: -8, rotationY: 0, shape: 'RECTANGLE',  status: 'OCCUPIED' },
+    { number: 4, name: 'Mesa 4', capacity: 4, positionX: 9,   positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',     status: 'BILL_REQUESTED' },
+    { number: 5, name: 'Mesa 5', capacity: 2, positionX: -9,  positionY: 0, positionZ: -1, rotationY: 0, shape: 'ROUND',      status: 'EATING' },
+    { number: 6, name: 'Mesa 6', capacity: 4, positionX: -3,  positionY: 0, positionZ: -1, rotationY: 0, shape: 'SQUARE',     status: 'AVAILABLE' },
+    { number: 7, name: 'Mesa 7', capacity: 8, positionX: 3,   positionY: 0, positionZ: -1, rotationY: 0, shape: 'RECTANGLE',  status: 'CLEANING' },
+    { number: 8, name: 'Mesa 8', capacity: 4, positionX: 9,   positionY: 0, positionZ: -1, rotationY: 0, shape: 'ROUND',      status: 'AVAILABLE' },
   ];
 
   for (const tbl of defaultTables) {
