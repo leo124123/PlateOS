@@ -203,7 +203,7 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
       )}
 
       {/* POS Style Floating Badge Overlay */}
-      <Html position={[0, 1.6, 0]} center distanceFactor={12}>
+      <Html position={[0, 1.6, 0]} center distanceFactor={12} zIndexRange={[10, 1]}>
         <div className="flex flex-col items-center gap-1 pointer-events-auto select-none">
           <div
             className={`px-3 py-1.5 rounded-xl shadow-2xl flex items-center gap-2 border border-white/20 font-extrabold text-xs transition-all duration-300 backdrop-blur-xl ${

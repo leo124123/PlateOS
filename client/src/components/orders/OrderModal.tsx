@@ -95,7 +95,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({ table, categories, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
       <div className="w-full max-w-5xl h-[85vh] glass-panel rounded-3xl border border-slate-700 flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
         
         {/* Left Side: Categories & Menu Dishes Selection */}
