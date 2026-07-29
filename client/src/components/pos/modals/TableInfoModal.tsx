@@ -124,10 +124,12 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
                   <ChefHat className="w-4 h-4 text-amber-500 animate-bounce" />
                   Cocina: En Preparación ({activeTimerInfo.duration / 60000}m)
                 </span>
-                <span className="font-black text-white flex items-center gap-1 font-mono">
-                  <Timer className="w-3.5 h-3.5 text-cyan-400" />
-                  Quedan: {remMin}m {remSec < 10 ? `0${remSec}` : remSec}s
-                </span>
+                <div className="px-3 py-1 rounded-xl bg-slate-900 border border-amber-500/40 shadow-md shadow-amber-500/10 flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tiempo Restante:</span>
+                  <span className="text-xs font-black font-mono tracking-widest text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                    {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
+                  </span>
+                </div>
               </div>
 
               {/* Waiter Synchronized Progress Bar */}

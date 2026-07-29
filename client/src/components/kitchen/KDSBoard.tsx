@@ -307,13 +307,16 @@ export const KDSBoard: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2 p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                        <div className="flex justify-between items-center text-xs font-black">
+                        <div className="flex justify-between items-center text-xs font-black gap-2">
                           <span className="text-amber-400 flex items-center gap-1">
-                            <Timer className="w-4 h-4 animate-spin-slow" /> En Cocción ({timerInfo.duration / 60000}m)
+                            <Timer className="w-4 h-4 text-amber-400 animate-spin-slow" /> En Cocción ({timerInfo.duration / 60000}m)
                           </span>
-                          <span className="text-white font-mono">
-                            Restante: {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
-                          </span>
+                          <div className="px-3 py-1 rounded-xl bg-slate-950 border border-amber-500/40 shadow-md shadow-amber-500/10 flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tiempo Restante:</span>
+                            <span className="text-xs font-black font-mono tracking-widest text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                              {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Loading Progress Bar */}
@@ -345,13 +348,16 @@ export const KDSBoard: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2 p-3 rounded-2xl bg-slate-950 border border-amber-500/30">
-                        <div className="flex justify-between items-center text-xs font-black">
+                        <div className="flex justify-between items-center text-xs font-black gap-2">
                           <span className="text-amber-400 flex items-center gap-1">
                             <ChefHat className="w-4 h-4 text-amber-500 animate-bounce" /> En Cocción por Chef ({timerInfo.duration / 60000}m)
                           </span>
-                          <span className="text-white font-mono">
-                            Quedan: {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
-                          </span>
+                          <div className="px-3 py-1 rounded-xl bg-slate-950 border border-amber-500/40 shadow-md shadow-amber-500/10 flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tiempo Restante:</span>
+                            <span className="text-xs font-black font-mono tracking-widest text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                              {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Waiter Live Progress Bar */}
