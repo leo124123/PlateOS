@@ -65,16 +65,27 @@ async function main() {
     cashier: cashier.email,
   });
 
-  // 2. Create 3D Tables — Single Comedor Layout (2 rows of 4)
+  // 2. Create 3D Tables — Single Comedor Layout (4 rows of 4 = 16 tables)
   const defaultTables = [
-    { number: 1, name: 'Mesa 1', capacity: 4, positionX: -9,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'ROUND',     status: 'AVAILABLE' },
-    { number: 2, name: 'Mesa 2', capacity: 2, positionX: -3,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',     status: 'ORDER_PENDING' },
-    { number: 3, name: 'Mesa 3', capacity: 6, positionX: 3,   positionY: 0, positionZ: -8, rotationY: 0, shape: 'RECTANGLE',  status: 'OCCUPIED' },
-    { number: 4, name: 'Mesa 4', capacity: 4, positionX: 9,   positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',     status: 'BILL_REQUESTED' },
-    { number: 5, name: 'Mesa 5', capacity: 2, positionX: -9,  positionY: 0, positionZ: -1, rotationY: 0, shape: 'ROUND',      status: 'EATING' },
-    { number: 6, name: 'Mesa 6', capacity: 4, positionX: -3,  positionY: 0, positionZ: -1, rotationY: 0, shape: 'SQUARE',     status: 'AVAILABLE' },
-    { number: 7, name: 'Mesa 7', capacity: 8, positionX: 3,   positionY: 0, positionZ: -1, rotationY: 0, shape: 'RECTANGLE',  status: 'CLEANING' },
-    { number: 8, name: 'Mesa 8', capacity: 4, positionX: 9,   positionY: 0, positionZ: -1, rotationY: 0, shape: 'ROUND',      status: 'AVAILABLE' },
+    { number: 1,  name: 'Mesa 1',  capacity: 4, positionX: -10,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'ROUND',     status: 'AVAILABLE' },
+    { number: 2,  name: 'Mesa 2',  capacity: 2, positionX: -3.5, positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',    status: 'ORDER_PENDING' },
+    { number: 3,  name: 'Mesa 3',  capacity: 6, positionX: 3.5,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'RECTANGLE', status: 'OCCUPIED' },
+    { number: 4,  name: 'Mesa 4',  capacity: 4, positionX: 10,   positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',    status: 'BILL_REQUESTED' },
+
+    { number: 5,  name: 'Mesa 5',  capacity: 2, positionX: -10,  positionY: 0, positionZ: -2, rotationY: 0, shape: 'ROUND',     status: 'EATING' },
+    { number: 6,  name: 'Mesa 6',  capacity: 4, positionX: -3.5, positionY: 0, positionZ: -2, rotationY: 0, shape: 'SQUARE',    status: 'AVAILABLE' },
+    { number: 7,  name: 'Mesa 7',  capacity: 8, positionX: 3.5,  positionY: 0, positionZ: -2, rotationY: 0, shape: 'RECTANGLE', status: 'CLEANING' },
+    { number: 8,  name: 'Mesa 8',  capacity: 4, positionX: 10,   positionY: 0, positionZ: -2, rotationY: 0, shape: 'ROUND',     status: 'AVAILABLE' },
+
+    { number: 9,  name: 'Mesa 9',  capacity: 4, positionX: -10,  positionY: 0, positionZ: 4,  rotationY: 0, shape: 'SQUARE',    status: 'AVAILABLE' },
+    { number: 10, name: 'Mesa 10', capacity: 2, positionX: -3.5, positionY: 0, positionZ: 4,  rotationY: 0, shape: 'ROUND',     status: 'OCCUPIED' },
+    { number: 11, name: 'Mesa 11', capacity: 6, positionX: 3.5,  positionY: 0, positionZ: 4,  rotationY: 0, shape: 'RECTANGLE', status: 'ORDER_PENDING' },
+    { number: 12, name: 'Mesa 12', capacity: 4, positionX: 10,   positionY: 0, positionZ: 4,  rotationY: 0, shape: 'SQUARE',    status: 'AVAILABLE' },
+
+    { number: 13, name: 'Mesa 13', capacity: 2, positionX: -10,  positionY: 0, positionZ: 9,  rotationY: 0, shape: 'ROUND',     status: 'AVAILABLE' },
+    { number: 14, name: 'Mesa 14', capacity: 4, positionX: -3.5, positionY: 0, positionZ: 9,  rotationY: 0, shape: 'SQUARE',    status: 'CLEANING' },
+    { number: 15, name: 'Mesa 15', capacity: 4, positionX: 3.5,  positionY: 0, positionZ: 9,  rotationY: 0, shape: 'SQUARE',    status: 'EATING' },
+    { number: 16, name: 'Mesa 16', capacity: 6, positionX: 10,   positionY: 0, positionZ: 9,  rotationY: 0, shape: 'RECTANGLE', status: 'AVAILABLE' },
   ];
 
   for (const tbl of defaultTables) {
