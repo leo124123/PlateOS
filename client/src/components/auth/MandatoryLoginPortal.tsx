@@ -10,7 +10,6 @@ interface MandatoryLoginPortalProps {
 export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLoginSuccess }) => {
   const [pinCode, setPinCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [selectedStaffRole, setSelectedStaffRole] = useState<Role | null>(null);
 
   const { loginWithPin, isLoading } = useAuthStore();
 
@@ -40,7 +39,6 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
 
     const success = await loginWithPin(pinCode);
     if (success) {
-      // Determine role from pin or default fallback
       const role: Role = pinCode === '3333' ? 'KITCHEN' : pinCode === '5555' ? 'CASHIER' : pinCode === '1111' ? 'WAITER' : 'ADMIN';
       onLoginSuccess(role);
     } else {
@@ -55,39 +53,44 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
     if (success) {
       onLoginSuccess(role);
     } else {
-      // Direct state set for demo mode if backend fails
       onLoginSuccess(role);
     }
   };
 
   const staffProfiles = [
-    { name: 'Samuel Guance', role: 'WAITER' as Role, roleLabel: 'Mesero / Mozo', pin: '1111', icon: UserCheck, color: 'from-blue-600 to-indigo-700', badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
-    { name: 'Chef Gordon', role: 'KITCHEN' as Role, roleLabel: 'Cocinero / Chef', pin: '3333', icon: ChefHat, color: 'from-amber-600 to-orange-600', badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-    { name: 'Carlos Mendoza', role: 'CASHIER' as Role, roleLabel: 'Cajero / Facturación', pin: '5555', icon: CreditCard, color: 'from-emerald-600 to-teal-700', badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-    { name: 'Administrador', role: 'ADMIN' as Role, roleLabel: 'Gerente (Acceso Total)', pin: '1234', icon: ShieldCheck, color: 'from-purple-600 to-pink-700', badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+    { name: 'Samuel Guance', role: 'WAITER' as Role, roleLabel: 'Mesero / Mozo', pin: '1111', icon: UserCheck, color: 'from-blue-600 to-indigo-700 border-l-4 border-l-blue-400', badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+    { name: 'Chef Gordon', role: 'KITCHEN' as Role, roleLabel: 'Cocinero / Chef', pin: '3333', icon: ChefHat, color: 'from-amber-600 to-orange-600 border-l-4 border-l-amber-400', badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+    { name: 'Carlos Mendoza', role: 'CASHIER' as Role, roleLabel: 'Cajero / Facturación', pin: '5555', icon: CreditCard, color: 'from-emerald-600 to-teal-700 border-l-4 border-l-emerald-400', badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+    { name: 'Administrador', role: 'ADMIN' as Role, roleLabel: 'Gerente (Acceso Total)', pin: '1234', icon: ShieldCheck, color: 'from-purple-600 to-pink-700 border-l-4 border-l-purple-400', badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
   ];
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl select-none animate-in fade-in duration-300">
-      <div className="w-full max-w-4xl glass-panel rounded-3xl border border-slate-700/80 p-6 md:p-8 shadow-2xl bg-slate-900/95 text-white flex flex-col gap-6">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl select-none animate-in fade-in duration-300 relative overflow-hidden">
+      
+      {/* ── 3D AMBIENT LIGHT ORBS IN BACKGROUND ── */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-amber-500/20 blur-[130px] pointer-events-none animate-pulse" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-indigo-600/25 blur-[140px] pointer-events-none animate-pulse" />
+
+      {/* ── 3D FLOATING GLASS CONTAINER WITH DEEP BOX SHADOW & BEVEL GLOW ── */}
+      <div className="w-full max-w-4xl rounded-[2.5rem] border-t-2 border-t-amber-400/50 border-x border-slate-700/80 border-b-2 border-b-slate-950 p-6 md:p-8 bg-slate-900/90 text-white flex flex-col gap-6 shadow-[0_30px_90px_rgba(0,0,0,0.9),0_0_60px_rgba(245,158,11,0.25)] relative z-10">
         
         {/* Header Branding */}
-        <div className="flex flex-col items-center text-center border-b border-slate-800 pb-5">
-          <div className="p-3.5 rounded-3xl bg-gradient-to-tr from-amber-500 to-red-600 text-white shadow-xl shadow-amber-500/20 mb-2.5">
+        <div className="flex flex-col items-center text-center border-b border-slate-800/80 pb-5">
+          <div className="p-3.5 rounded-3xl bg-gradient-to-tr from-amber-500 to-red-600 text-white shadow-xl shadow-amber-500/30 mb-2.5 hover:scale-105 transition-transform">
             <UtensilsCrossed className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            PlateOS POS <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">Seguridad PIN</span>
+            PlateOS POS <span className="text-xs px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 font-black shadow-inner">Seguridad PIN</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1 max-w-md">
             Ingreso obligatorio por PIN. Selecciona tu perfil de personal o ingresa tu clave de 4 dígitos.
           </p>
         </div>
 
-        {/* ── TWO COLUMN LAYOUT: STAFF CARDS & NUMPAD ── */}
+        {/* ── TWO COLUMN LAYOUT: STAFF CARDS & 3D NUMPAD ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           
-          {/* Left Column: Quick Select Staff Profiles */}
+          {/* Left Column: Quick Select Staff Profiles with 3D Depth */}
           <div className="flex flex-col gap-3">
             <label className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" /> Perfiles de Personal Registrados:
@@ -100,14 +103,14 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
                   <button
                     key={p.role}
                     onClick={() => handleQuickDemoLogin(p.role, p.pin)}
-                    className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/90 hover:border-amber-500/60 transition-all flex items-center justify-between group shadow-md text-left"
+                    className={`p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-400/80 transition-all duration-200 flex items-center justify-between group shadow-[0_6px_20px_rgba(0,0,0,0.6)] hover:shadow-[0_8px_25px_rgba(245,158,11,0.2)] hover:translate-y-[-2px] active:translate-y-[1px] text-left ${p.color}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl bg-gradient-to-r ${p.color} text-white shadow-md`}>
-                        <IconComponent className="w-5 h-5" />
+                      <div className="p-2.5 rounded-xl bg-slate-900/90 text-white shadow-md border border-slate-700/60">
+                        <IconComponent className="w-5 h-5 text-amber-400" />
                       </div>
                       <div>
-                        <h4 className="font-extrabold text-xs text-white group-hover:text-amber-400 transition-colors">
+                        <h4 className="font-extrabold text-xs text-white group-hover:text-amber-300 transition-colors">
                           {p.name}
                         </h4>
                         <span className={`text-[10px] px-2 py-0.5 rounded-md font-black uppercase border mt-0.5 inline-block ${p.badgeClass}`}>
@@ -117,8 +120,8 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
                     </div>
 
                     <div className="text-right">
-                      <span className="text-[10px] font-mono text-slate-500 block">PIN: {p.pin}</span>
-                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider group-hover:underline">Entrar →</span>
+                      <span className="text-[10px] font-mono text-slate-400 block">PIN: {p.pin}</span>
+                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider group-hover:translate-x-1 transition-transform inline-block">Entrar →</span>
                     </div>
                   </button>
                 );
@@ -126,21 +129,21 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
             </div>
           </div>
 
-          {/* Right Column: Keypad PIN Form */}
-          <div className="p-5 rounded-3xl bg-slate-950/90 border border-slate-800/90 flex flex-col items-center gap-4 shadow-inner">
-            <div className="flex items-center gap-2 text-xs font-extrabold text-slate-300">
-              <KeyRound className="w-4 h-4 text-amber-400" /> Ingresar PIN de 4 dígitos:
+          {/* Right Column: 3D Keypad PIN Form */}
+          <div className="p-6 rounded-3xl bg-slate-950/90 border border-slate-800 flex flex-col items-center gap-4 shadow-[inset_0_4px_12px_rgba(0,0,0,0.8)]">
+            <div className="flex items-center gap-2 text-xs font-black text-slate-300">
+              <KeyRound className="w-4 h-4 text-amber-400 animate-pulse" /> Ingresar PIN de 4 dígitos:
             </div>
 
-            {/* Visual Dot Indicators */}
+            {/* 3D Visual Dot Indicators */}
             <div className="flex gap-3 py-1">
               {[0, 1, 2, 3].map((idx) => (
                 <div
                   key={idx}
-                  className={`w-11 h-11 rounded-2xl border-2 flex items-center justify-center text-lg font-black transition-all ${
+                  className={`w-11 h-11 rounded-2xl border-2 flex items-center justify-center text-lg font-black transition-all duration-200 ${
                     pinCode.length > idx
-                      ? 'border-amber-400 bg-amber-500/20 text-amber-300 scale-110 shadow-lg shadow-amber-500/20'
-                      : 'border-slate-800 bg-slate-900 text-slate-700'
+                      ? 'border-amber-400 bg-amber-500/20 text-amber-300 scale-110 shadow-[0_0_20px_rgba(245,158,11,0.5)]'
+                      : 'border-slate-800 bg-slate-900 text-slate-700 shadow-inner'
                   }`}
                 >
                   {pinCode.length > idx ? '●' : ''}
@@ -149,19 +152,19 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
             </div>
 
             {errorMessage && (
-              <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[11px] font-extrabold text-center animate-in zoom-in-95 max-w-xs">
+              <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[11px] font-black text-center animate-in zoom-in-95 max-w-xs shadow-md">
                 {errorMessage}
               </div>
             )}
 
-            {/* Touch Numpad Grid */}
-            <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
+            {/* 3D Touch Numpad Grid */}
+            <div className="grid grid-cols-3 gap-2.5 w-full max-w-xs">
               {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
                 <button
                   key={digit}
                   type="button"
                   onClick={() => handleKeyPress(digit)}
-                  className="py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-extrabold text-lg transition-all active:scale-95 shadow-sm"
+                  className="py-3 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-700/60 text-white font-black text-lg transition-all shadow-[0_4px_0_0_#0f172a] hover:translate-y-[-2px] hover:shadow-[0_6px_0_0_#0f172a] active:translate-y-[2px] active:shadow-none"
                 >
                   {digit}
                 </button>
@@ -170,7 +173,7 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
               <button
                 type="button"
                 onClick={handleClear}
-                className="py-3 rounded-2xl bg-slate-900/80 hover:bg-rose-950 border border-slate-800 text-rose-400 font-extrabold text-xs transition-all"
+                className="py-3 rounded-2xl bg-slate-900 hover:bg-rose-950/80 border border-slate-800 text-rose-400 font-black text-xs transition-all shadow-[0_4px_0_0_#0f172a] hover:translate-y-[-2px] active:translate-y-[2px] active:shadow-none"
               >
                 C
               </button>
@@ -178,7 +181,7 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
               <button
                 type="button"
                 onClick={() => handleKeyPress('0')}
-                className="py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-extrabold text-lg transition-all active:scale-95 shadow-sm"
+                className="py-3 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-700/60 text-white font-black text-lg transition-all shadow-[0_4px_0_0_#0f172a] hover:translate-y-[-2px] hover:shadow-[0_6px_0_0_#0f172a] active:translate-y-[2px] active:shadow-none"
               >
                 0
               </button>
@@ -186,17 +189,17 @@ export const MandatoryLoginPortal: React.FC<MandatoryLoginPortalProps> = ({ onLo
               <button
                 type="button"
                 onClick={handleDelete}
-                className="py-3 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 font-extrabold text-xs transition-all flex items-center justify-center"
+                className="py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-black text-xs transition-all flex items-center justify-center shadow-[0_4px_0_0_#0f172a] hover:translate-y-[-2px] active:translate-y-[2px] active:shadow-none"
               >
                 <Delete className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Confirm Submit Button */}
+            {/* Confirm Submit Button with 3D Glow */}
             <button
               onClick={() => handleSubmitPin()}
               disabled={isLoading || pinCode.length < 4}
-              className="w-full max-w-xs py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-xl shadow-amber-500/20 disabled:opacity-40 transition-all"
+              className="w-full max-w-xs py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_10px_30px_rgba(245,158,11,0.4)] disabled:opacity-40 transition-all hover:scale-102 active:scale-98"
             >
               {isLoading ? 'Autenticando...' : 'Iniciar Sesión'}
             </button>
