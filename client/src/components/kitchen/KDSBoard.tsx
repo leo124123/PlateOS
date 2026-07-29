@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ChefHat, Clock, CheckCircle2, AlertCircle, Play, Timer, Sparkles } from 'lucide-react';
+import { ChefHat, Clock, CheckCircle2, AlertCircle, Play, Timer, Sparkles, Eye } from 'lucide-react';
 import { Order } from '../../types';
 import api from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export const KDSBoard: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -10,6 +11,10 @@ export const KDSBoard: React.FC = () => {
   const [prepTimes, setPrepTimes] = useState<Record<string, number>>({});
   const [activeTimers, setActiveTimers] = useState<Record<string, { start: number; duration: number }>>({});
   const { socket } = useSocket();
+  const { user } = useAuthStore();
+
+  // Strict Role Check: Only Chef or Admin can manipulate prep times and mark orders ready
+  const isChef = user?.role === 'KITCHEN' || user?.role === 'ADMIN';
 
   const fetchKitchenOrders = async () => {
     try {
@@ -91,12 +96,20 @@ export const KDSBoard: React.FC = () => {
             <h1 className="text-3xl font-black text-white flex items-center gap-3 tracking-tight">
               <ChefHat className="text-amber-500 w-9 h-9" /> Pantalla de Cocina (KDS)
             </h1>
-            <span className="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-extrabold">
-              👨‍🍳 Exclusivo para Cocineros
-            </span>
+            {isChef ? (
+              <span className="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-extrabold flex items-center gap-1">
+                👨‍🍳 Rol: Chef / Cocinero (Control Total)
+              </span>
+            ) : (
+              <span className="text-xs px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40 font-extrabold flex items-center gap-1">
+                <Eye className="w-3.5 h-3.5 text-blue-400" /> Rol: Mesero (Modo Solo Lectura)
+              </span>
+            )}
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Los cocineros asignan el tiempo estimado de cocción y notifican al mesero al terminar
+            {isChef
+              ? 'Los cocineros asignan el tiempo estimado de cocción y notifican al mesero al terminar.'
+              : 'Vista de seguimiento para meseros: Muestra el tiempo de cocción asignado por el chef y la barra de avance.'}
           </p>
         </div>
 
@@ -198,64 +211,98 @@ export const KDSBoard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ── CHEF PREPARATION TIMER CONTROLS ── */}
+                {/* ── CONDITIONAL RENDER: CHEF VS WAITER ── */}
                 <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-2">
-                  {!timerInfo ? (
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                        <Timer className="w-3.5 h-3.5 text-amber-400" /> Asignar Tiempo Estimado:
-                      </label>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {[10, 15, 20, 30].map((mins) => (
-                          <button
-                            key={mins}
-                            onClick={() => handleSetPrepTime(order.id, mins)}
-                            className={`py-1.5 rounded-xl text-xs font-black border transition-all ${
-                              selectedTime === mins
-                                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
-                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
-                            }`}
-                          >
-                            {mins}m
-                          </button>
-                        ))}
-                      </div>
+                  {isChef ? (
+                    /* CHEF CONTROLS */
+                    !timerInfo ? (
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                          <Timer className="w-3.5 h-3.5 text-amber-400" /> Asignar Tiempo Estimado:
+                        </label>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[10, 15, 20, 30].map((mins) => (
+                            <button
+                              key={mins}
+                              onClick={() => handleSetPrepTime(order.id, mins)}
+                              className={`py-1.5 rounded-xl text-xs font-black border transition-all ${
+                                selectedTime === mins
+                                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
+                                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
+                              }`}
+                            >
+                              {mins}m
+                            </button>
+                          ))}
+                        </div>
 
-                      <button
-                        onClick={() => handleStartPrep(order.id)}
-                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
-                      >
-                        <Play className="w-4 h-4 fill-white" /> Iniciar Cocción ({selectedTime}m)
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-2 p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                      <div className="flex justify-between items-center text-xs font-black">
-                        <span className="text-amber-400 flex items-center gap-1">
-                          <Timer className="w-4 h-4 animate-spin-slow" /> En Cocción ({timerInfo.duration / 60000}m)
-                        </span>
-                        <span className="text-white">
-                          Restante: {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
-                        </span>
-                      </div>
-
-                      {/* Loading Progress Bar */}
-                      <div className="w-full bg-slate-900 rounded-full h-3.5 p-0.5 border border-slate-800 overflow-hidden">
-                        <div
-                          className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-500 flex items-center justify-end pr-1 text-[9px] font-black text-slate-950 shadow-md shadow-amber-500/30"
-                          style={{ width: `${progressPercent}%` }}
+                        <button
+                          onClick={() => handleStartPrep(order.id)}
+                          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
                         >
-                          {progressPercent}%
+                          <Play className="w-4 h-4 fill-white" /> Iniciar Cocción ({selectedTime}m)
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-slate-950 border border-slate-800">
+                        <div className="flex justify-between items-center text-xs font-black">
+                          <span className="text-amber-400 flex items-center gap-1">
+                            <Timer className="w-4 h-4 animate-spin-slow" /> En Cocción ({timerInfo.duration / 60000}m)
+                          </span>
+                          <span className="text-white">
+                            Restante: {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
+                          </span>
+                        </div>
+
+                        {/* Loading Progress Bar */}
+                        <div className="w-full bg-slate-900 rounded-full h-3.5 p-0.5 border border-slate-800 overflow-hidden">
+                          <div
+                            className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-500 flex items-center justify-end pr-1 text-[9px] font-black text-slate-950 shadow-md shadow-amber-500/30"
+                            style={{ width: `${progressPercent}%` }}
+                          >
+                            {progressPercent}%
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleMarkAsReady(order)}
+                          className="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> ✔ Marcar Listo & Notificar Mozo
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    /* WAITER READ-ONLY VIEW (No buttons to start or mark ready!) */
+                    !timerInfo ? (
+                      <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+                        <span className="text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5">
+                          <Clock className="w-4 h-4 animate-pulse" /> Esperando que el Cocinero asigne tiempo e inicie...
+                        </span>
+                        <p className="text-[10px] text-slate-500 mt-1">El chef activará la barra de cocción.</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-slate-950 border border-amber-500/30">
+                        <div className="flex justify-between items-center text-xs font-black">
+                          <span className="text-amber-400 flex items-center gap-1">
+                            <ChefHat className="w-4 h-4 text-amber-500 animate-bounce" /> En Cocción por Chef ({timerInfo.duration / 60000}m)
+                          </span>
+                          <span className="text-white font-mono">
+                            Quedan: {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
+                          </span>
+                        </div>
+
+                        {/* Waiter Live Progress Bar */}
+                        <div className="w-full bg-slate-900 rounded-full h-3.5 p-0.5 border border-slate-800 overflow-hidden">
+                          <div
+                            className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-500 flex items-center justify-end pr-1 text-[9px] font-black text-slate-950 shadow-md shadow-amber-500/30"
+                            style={{ width: `${progressPercent}%` }}
+                          >
+                            {progressPercent}%
+                          </div>
                         </div>
                       </div>
-
-                      <button
-                        onClick={() => handleMarkAsReady(order)}
-                        className="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
-                      >
-                        <CheckCircle2 className="w-4 h-4" /> ✔ Marcar Listo & Notificar Mozo
-                      </button>
-                    </div>
+                    )
                   )}
                 </div>
               </div>
