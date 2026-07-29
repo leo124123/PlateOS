@@ -18,6 +18,7 @@ import { PaymentModal } from './components/payment/PaymentModal';
 import { GamificationBoard } from './components/goals/GamificationBoard';
 import { CashierBoard } from './components/cashier/CashierBoard';
 import { LoginModal } from './components/auth/LoginModal';
+import { MandatoryLoginPortal } from './components/auth/MandatoryLoginPortal';
 import { POSBottomToolbar } from './components/pos/POSBottomToolbar';
 import { TransferTableModal } from './components/pos/modals/TransferTableModal';
 import { SplitBillModal } from './components/pos/modals/SplitBillModal';
@@ -26,11 +27,12 @@ import { SubtotalPreviewModal } from './components/pos/modals/SubtotalPreviewMod
 import { useRestaurantStore } from './store/useRestaurantStore';
 import { useAuthStore } from './store/useAuthStore';
 import { useSocket } from './context/SocketContext';
-import { TableItem } from './types';
+import { TableItem, Role } from './types';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'3d' | 'kitchen' | 'payments' | 'goals'>('3d');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAppLocked, setIsAppLocked] = useState(true);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
   const [isTableInfoModalOpen, setIsTableInfoModalOpen] = useState(false);
@@ -53,7 +55,7 @@ export const App: React.FC = () => {
     setAlertNotification,
   } = useRestaurantStore();
 
-  const { user, fetchMe } = useAuthStore();
+  const { user, fetchMe, logout } = useAuthStore();
   const { isConnected } = useSocket();
 
   useEffect(() => {
@@ -61,6 +63,18 @@ export const App: React.FC = () => {
     fetchMenu();
     fetchMe();
   }, []);
+
+  const handleLoginSuccess = (role: Role) => {
+    setIsAppLocked(false);
+    if (role === 'KITCHEN') setActiveTab('kitchen');
+    else if (role === 'CASHIER') setActiveTab('payments');
+    else setActiveTab('3d');
+  };
+
+  const handleLockTerminal = () => {
+    logout();
+    setIsAppLocked(true);
+  };
 
   const handleSelectTableFrom3D = (table: TableItem) => {
     setSelectedTable(table);
@@ -164,22 +178,27 @@ export const App: React.FC = () => {
                 <div className="text-[10px] text-amber-400 font-bold uppercase">{user.role}</div>
               </div>
               <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-extrabold flex items-center gap-1.5 hover:bg-amber-500/30 transition-all"
+                onClick={handleLockTerminal}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-extrabold flex items-center gap-1.5 hover:bg-amber-500/30 transition-all shadow-sm"
               >
-                <UserCheck className="w-4 h-4" /> Cambiar PIN
+                <UserCheck className="w-4 h-4" /> 🔒 Cambiar / Bloquear PIN
               </button>
             </div>
           ) : (
             <button
-              onClick={() => setIsLoginModalOpen(true)}
+              onClick={() => setIsAppLocked(true)}
               className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/20 transition-all"
             >
-              Ingresar / PIN
+              🔒 Ingresar / PIN
             </button>
           )}
         </div>
       </header>
+
+      {/* Mandatory Login Portal Overlay */}
+      {isAppLocked && (
+        <MandatoryLoginPortal onLoginSuccess={handleLoginSuccess} />
+      )}
 
       {/* Alert Banner Notification */}
       {alertNotification && (
