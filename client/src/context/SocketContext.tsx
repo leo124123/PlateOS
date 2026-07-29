@@ -44,11 +44,14 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     newSocket.on('waiter:order_ready_alert', (data) => {
       fetchTables();
-      setAlertNotification(data);
-      try {
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        audio.play().catch(() => {});
-      } catch (e) {}
+      // Only notify Waiters or Admins (Chef/Kitchen does NOT receive this alert)
+      if (user?.role === 'WAITER' || user?.role === 'ADMIN') {
+        setAlertNotification(data);
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(() => {});
+        } catch (e) {}
+      }
     });
 
     setSocket(newSocket);

@@ -9,7 +9,8 @@ import {
   RefreshCw,
   Wifi,
   WifiOff,
-  Layers
+  Layers,
+  Truck
 } from 'lucide-react';
 import { RestaurantFloor3D } from './components/3d/RestaurantFloor3D';
 import { KDSBoard } from './components/kitchen/KDSBoard';
@@ -201,12 +202,12 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Alert Banner Notification */}
-      {alertNotification && (
+      {/* Alert Banner Notification: STRICTLY FOR WAITERS AND ADMINS ONLY */}
+      {alertNotification && (user?.role === 'WAITER' || user?.role === 'ADMIN') && (
         <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 px-6 py-2.5 text-slate-950 font-black text-xs flex items-center justify-between shadow-xl animate-in slide-in-from-top duration-300 z-30">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 animate-bounce" />
-            <span>¡PLATILLO LISTO PARA SERVIR! {alertNotification.message} (Mesa #{alertNotification.tableNumber})</span>
+            <span>¡PEDIDO LISTO EN COCINA! Mesa #{alertNotification.tableNumber} — El platillo está listo para llevar al cliente.</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -228,13 +229,13 @@ export const App: React.FC = () => {
                   console.error('Error entregando pedido', err);
                 }
               }}
-              className="px-3 py-1 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-lg text-[10px] uppercase font-black tracking-wider flex items-center gap-1 shadow-md border border-emerald-400/40"
+              className="px-3.5 py-1.5 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border border-emerald-400/40 hover:scale-105 transition-all"
             >
-              🚚 Entregar Pedido
+              <Truck className="w-4 h-4" /> 🚚 Llevar Pedido
             </button>
             <button
               onClick={() => setAlertNotification(null)}
-              className="px-3 py-1 bg-slate-950/80 text-white rounded-lg text-[10px] uppercase font-bold hover:bg-slate-950"
+              className="px-3 py-1.5 bg-slate-950/80 text-white rounded-xl text-[10px] uppercase font-bold hover:bg-slate-950"
             >
               Entendido
             </button>
