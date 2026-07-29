@@ -8,20 +8,56 @@ interface TableInfoModalProps {
 }
 
 export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }) => {
-  const [prepProgress, setPrepProgress] = useState(65);
-  const [remSeconds, setRemSeconds] = useState(240);
+  const [activeTimerInfo, setActiveTimerInfo] = useState<{ start: number; duration: number } | null>(null);
+  const [, setTick] = useState(0);
 
-  // Live countdown ticker simulation for waiters
+  // Read synced timer for table's current order from localStorage
   useEffect(() => {
-    const timer = setInterval(() => {
-      setRemSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-      setPrepProgress((prev) => (prev < 100 ? prev + 1 : 100));
-    }, 1200);
-    return () => clearInterval(timer);
-  }, []);
+    const updateTimerFromStorage = () => {
+      try {
+        const raw = localStorage.getItem('plateos_active_timers');
+        if (raw) {
+          const timers = JSON.parse(raw);
+          // Match by orderId if available, or fallback to table active order
+          const activeOrder = table.orders && table.orders.length > 0 ? table.orders[0] : null;
+          const orderId = activeOrder?.id || table.currentOrderId || table.id;
+          
+          if (timers[orderId]) {
+            setActiveTimerInfo(timers[orderId]);
+            return;
+          }
 
-  const remMin = Math.floor(remSeconds / 60);
-  const remSec = remSeconds % 60;
+          // Fallback check: find any timer matching table ID keys
+          const matchedKey = Object.keys(timers).find((k) => k.includes(table.id) || (activeOrder && k.includes(activeOrder.id)));
+          if (matchedKey) {
+            setActiveTimerInfo(timers[matchedKey]);
+            return;
+          }
+        }
+        setActiveTimerInfo(null);
+      } catch (e) {}
+    };
+
+    updateTimerFromStorage();
+    const interval = setInterval(() => {
+      updateTimerFromStorage();
+      setTick((t) => t + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [table]);
+
+  let progressPercent = 0;
+  let remainingSeconds = 0;
+
+  if (activeTimerInfo) {
+    const elapsedMs = Date.now() - activeTimerInfo.start;
+    progressPercent = Math.min(100, Math.round((elapsedMs / activeTimerInfo.duration) * 100));
+    remainingSeconds = Math.max(0, Math.round((activeTimerInfo.duration - elapsedMs) / 1000));
+  }
+
+  const remMin = Math.floor(remainingSeconds / 60);
+  const remSec = remainingSeconds % 60;
 
   const mockItems = [
     { name: 'Lomo Saltado Gourmet', qty: 2, price: 24.50 },
@@ -44,7 +80,7 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
             </div>
             <div>
               <h3 className="text-lg font-black tracking-tight text-white">Detalle de Mesa #{table.number}</h3>
-              <p className="text-xs text-slate-400">Información del estado y comanda activa (Vista Mozo)</p>
+              <p className="text-xs text-slate-400">Información del estado y comanda activa (Sincronizada)</p>
             </div>
           </div>
           <button
@@ -61,14 +97,14 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
             <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
               <User className="w-3.5 h-3.5 text-cyan-400" /> Mozo Asignado
             </span>
-            <span className="text-sm font-extrabold text-white">Carlos (Mesero 1)</span>
+            <span className="text-sm font-extrabold text-white">Mozo Mesa #{table.number}</span>
           </div>
 
           <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col gap-1">
             <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-amber-400" /> Tiempo Ocupado
             </span>
-            <span className="text-sm font-extrabold text-amber-300">42 min</span>
+            <span className="text-sm font-extrabold text-amber-300">35 min</span>
           </div>
 
           <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col gap-1">
@@ -81,31 +117,37 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
 
         {/* ── KITCHEN PREPARATION TIMER & PROGRESS BAR FOR WAITERS ── */}
         {table.status !== 'AVAILABLE' && (
-          <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-col gap-2 shadow-inner">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-black text-amber-400 flex items-center gap-1.5">
-                <ChefHat className="w-4 h-4 text-amber-500 animate-bounce" />
-                Estado en Cocina: En Preparación
-              </span>
-              <span className="font-black text-white flex items-center gap-1">
-                <Timer className="w-3.5 h-3.5 text-cyan-400" />
-                Quedan: {remMin}m {remSec < 10 ? `0${remSec}` : remSec}s
-              </span>
-            </div>
+          activeTimerInfo ? (
+            <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-col gap-2 shadow-inner">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-black text-amber-400 flex items-center gap-1.5">
+                  <ChefHat className="w-4 h-4 text-amber-500 animate-bounce" />
+                  Cocina: En Preparación ({activeTimerInfo.duration / 60000}m)
+                </span>
+                <span className="font-black text-white flex items-center gap-1 font-mono">
+                  <Timer className="w-3.5 h-3.5 text-cyan-400" />
+                  Quedan: {remMin}m {remSec < 10 ? `0${remSec}` : remSec}s
+                </span>
+              </div>
 
-            {/* Waiter Progress Bar (Barra cargando hasta el tiempo establecido) */}
-            <div className="w-full bg-slate-900 rounded-full h-4 p-0.5 border border-slate-800 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2 text-[9px] font-black text-slate-950 shadow-md shadow-amber-500/30"
-                style={{ width: `${prepProgress}%` }}
-              >
-                {prepProgress}%
+              {/* Waiter Synchronized Progress Bar */}
+              <div className="w-full bg-slate-900 rounded-full h-4 p-0.5 border border-slate-800 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2 text-[9px] font-black text-slate-950 shadow-md shadow-amber-500/30"
+                  style={{ width: `${progressPercent}%` }}
+                >
+                  {progressPercent}%
+                </div>
               </div>
             </div>
-            <span className="text-[10px] text-slate-400 italic">
-              ℹ️ El cocinero marcará el platillo como listo cuando finalice la preparación.
-            </span>
-          </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+              <span className="text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5">
+                <Clock className="w-4 h-4 animate-pulse" /> Esperando que el Cocinero asigne tiempo e inicie...
+              </span>
+              <p className="text-[10px] text-slate-500 mt-1">El tiempo de cocción sincronizado aparecerá cuando el Chef presione Iniciar.</p>
+            </div>
+          )
         )}
 
         {/* Active Items List */}

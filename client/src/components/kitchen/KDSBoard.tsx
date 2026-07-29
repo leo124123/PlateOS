@@ -5,11 +5,28 @@ import api from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
 import { useAuthStore } from '../../store/useAuthStore';
 
+// Helper to load shared active timers from localStorage
+const getSavedTimers = (): Record<string, { start: number; duration: number }> => {
+  try {
+    const raw = localStorage.getItem('plateos_active_timers');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+};
+
+const saveTimersToStorage = (timers: Record<string, { start: number; duration: number }>) => {
+  try {
+    localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
+  } catch (e) {}
+};
+
 export const KDSBoard: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [prepTimes, setPrepTimes] = useState<Record<string, number>>({});
-  const [activeTimers, setActiveTimers] = useState<Record<string, { start: number; duration: number }>>({});
+  const [activeTimers, setActiveTimers] = useState<Record<string, { start: number; duration: number }>>(getSavedTimers);
+  
   const { socket } = useSocket();
   const { user } = useAuthStore();
 
@@ -31,17 +48,50 @@ export const KDSBoard: React.FC = () => {
     fetchKitchenOrders();
 
     if (socket) {
+      // 1. Listen for new orders sent from waiters
       socket.on('kitchen:order_new', (newOrder: Order) => {
-        setOrders((prev) => [...prev, newOrder]);
+        setOrders((prev) => {
+          if (prev.some((o) => o.id === newOrder.id)) return prev;
+          return [...prev, newOrder];
+        });
         try {
           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
           audio.play().catch(() => {});
         } catch (e) {}
       });
+
+      // 2. REAL-TIME SYNCHRONIZATION: Listen when chef starts prep timer for an order
+      socket.on('kitchen:prep_started', ({ orderId, prepTimeMinutes, startTime }: { orderId: string; prepTimeMinutes: number; startTime: number }) => {
+        setActiveTimers((prev) => {
+          const updated = {
+            ...prev,
+            [orderId]: { start: startTime || Date.now(), duration: prepTimeMinutes * 60 * 1000 },
+          };
+          saveTimersToStorage(updated);
+          return updated;
+        });
+      });
+
+      // 3. Listen when order is marked ready to clear active timer
+      socket.on('order:ready', ({ orderId }: { orderId: string }) => {
+        setActiveTimers((prev) => {
+          const updated = { ...prev };
+          delete updated[orderId];
+          saveTimersToStorage(updated);
+          return updated;
+        });
+      });
     }
 
     const interval = setInterval(fetchKitchenOrders, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      if (socket) {
+        socket.off('kitchen:order_new');
+        socket.off('kitchen:prep_started');
+        socket.off('order:ready');
+      }
+      clearInterval(interval);
+    };
   }, [socket]);
 
   // Live ticker for preparation progress bars
@@ -57,15 +107,21 @@ export const KDSBoard: React.FC = () => {
 
   const handleStartPrep = (orderId: string) => {
     const durationMin = prepTimes[orderId] || 15;
-    setActiveTimers((prev) => ({
-      ...prev,
-      [orderId]: { start: Date.now(), duration: durationMin * 60 * 1000 },
-    }));
+    const now = Date.now();
+
+    const updatedTimers = {
+      ...activeTimers,
+      [orderId]: { start: now, duration: durationMin * 60 * 1000 },
+    };
+
+    setActiveTimers(updatedTimers);
+    saveTimersToStorage(updatedTimers);
 
     if (socket) {
       socket.emit('kitchen:prep_started', {
         orderId,
         prepTimeMinutes: durationMin,
+        startTime: now,
       });
     }
   };
@@ -74,6 +130,11 @@ export const KDSBoard: React.FC = () => {
     try {
       await api.patch(`/orders/${order.id}/status`, { status: 'READY_FOR_DELIVERY' });
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
+
+      const updatedTimers = { ...activeTimers };
+      delete updatedTimers[order.id];
+      setActiveTimers(updatedTimers);
+      saveTimersToStorage(updatedTimers);
 
       if (socket) {
         socket.emit('order:ready', {
@@ -109,7 +170,7 @@ export const KDSBoard: React.FC = () => {
           <p className="text-sm text-slate-400 mt-1">
             {isChef
               ? 'Los cocineros asignan el tiempo estimado de cocción y notifican al mesero al terminar.'
-              : 'Vista de seguimiento para meseros: Muestra el tiempo de cocción asignado por el chef y la barra de avance.'}
+              : 'Vista de seguimiento para meseros: Muestra el tiempo de cocción en tiempo real asignado por el chef y la barra de avance.'}
           </p>
         </div>
 
@@ -138,6 +199,7 @@ export const KDSBoard: React.FC = () => {
               (new Date().getTime() - new Date(order.createdAt).getTime()) / 60000
             );
 
+            // Exact verification per specific Order ID
             const timerInfo = activeTimers[order.id];
             let progressPercent = 0;
             let remainingSeconds = 0;
@@ -249,7 +311,7 @@ export const KDSBoard: React.FC = () => {
                           <span className="text-amber-400 flex items-center gap-1">
                             <Timer className="w-4 h-4 animate-spin-slow" /> En Cocción ({timerInfo.duration / 60000}m)
                           </span>
-                          <span className="text-white">
+                          <span className="text-white font-mono">
                             Restante: {remMin}:{remSec < 10 ? `0${remSec}` : remSec}
                           </span>
                         </div>
@@ -273,7 +335,7 @@ export const KDSBoard: React.FC = () => {
                       </div>
                     )
                   ) : (
-                    /* WAITER READ-ONLY VIEW (No buttons to start or mark ready!) */
+                    /* WAITER REAL-TIME SYNCHRONIZED VIEW */
                     !timerInfo ? (
                       <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
                         <span className="text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5">
