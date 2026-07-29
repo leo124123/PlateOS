@@ -150,11 +150,25 @@ export const EntranceArea3D: React.FC = () => (
       </Text>
     </group>
 
-    {/* Entrance Canopy / Awning */}
-    <mesh position={[0, 3.3, 1.2]} rotation={[0.25, 0, 0]}>
-      <boxGeometry args={[8.5, 0.06, 2.2]} />
-      <meshStandardMaterial color="#991b1b" roughness={0.4} />
-    </mesh>
+    {/* Entrance Canopy / Awning (Bajado para no tapar el letrero) */}
+    <group position={[0, 2.75, 1.1]}>
+      <mesh rotation={[0.18, 0, 0]}>
+        <boxGeometry args={[7.5, 0.06, 1.8]} />
+        <meshStandardMaterial color="#991b1b" roughness={0.4} />
+      </mesh>
+      {/* Front Awning Edge Trim */}
+      <mesh position={[0, -0.1, 0.88]}>
+        <boxGeometry args={[7.52, 0.2, 0.04]} />
+        <meshStandardMaterial color="#7f1d1d" roughness={0.3} />
+      </mesh>
+      {/* Metallic Support Rods */}
+      {[-3.5, 3.5].map((x, i) => (
+        <mesh key={i} position={[x, 0.2, -0.3]} rotation={[-0.6, 0, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 1.2, 8]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.9} />
+        </mesh>
+      ))}
+    </group>
 
     {/* Plush Red Carpet Foyer Runner */}
     <mesh position={[0, 0.02, -1.8]}>
