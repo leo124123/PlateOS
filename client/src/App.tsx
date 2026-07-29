@@ -18,6 +18,10 @@ import { PaymentModal } from './components/payment/PaymentModal';
 import { GamificationBoard } from './components/goals/GamificationBoard';
 import { LoginModal } from './components/auth/LoginModal';
 import { POSBottomToolbar } from './components/pos/POSBottomToolbar';
+import { TransferTableModal } from './components/pos/modals/TransferTableModal';
+import { SplitBillModal } from './components/pos/modals/SplitBillModal';
+import { TableInfoModal } from './components/pos/modals/TableInfoModal';
+import { SubtotalPreviewModal } from './components/pos/modals/SubtotalPreviewModal';
 import { useRestaurantStore } from './store/useRestaurantStore';
 import { useAuthStore } from './store/useAuthStore';
 import { useSocket } from './context/SocketContext';
@@ -26,6 +30,10 @@ import { TableItem } from './types';
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'3d' | 'kitchen' | 'payments' | 'goals'>('3d');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
+  const [isTableInfoModalOpen, setIsTableInfoModalOpen] = useState(false);
+  const [isSubtotalModalOpen, setIsSubtotalModalOpen] = useState(false);
 
   const {
     tables,
