@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   CreditCard,
   Utensils,
@@ -11,9 +11,12 @@ import {
   BookOpen,
   BellRing,
   Sparkles,
-  Layers
+  Layers,
+  Truck
 } from 'lucide-react';
 import { useRestaurantStore } from '../../store/useRestaurantStore';
+import { useSocket } from '../../context/SocketContext';
+import api from '../../services/api';
 
 interface POSBottomToolbarProps {
   onOpenOrderModal: () => void;
@@ -34,9 +37,70 @@ export const POSBottomToolbar: React.FC<POSBottomToolbarProps> = ({
   onOpenInfoModal,
   onOpenSubtotalModal,
 }) => {
-  const { selectedTable, setSelectedTable } = useRestaurantStore();
+  const { selectedTable, setSelectedTable, fetchTables } = useRestaurantStore();
+  const { socket } = useSocket();
+  const [isOrderReady, setIsOrderReady] = useState(false);
+
+  const activeOrder = selectedTable?.orders && selectedTable.orders.length > 0 ? selectedTable.orders[0] : null;
+  const orderId = activeOrder?.id || selectedTable?.currentOrderId;
+
+  useEffect(() => {
+    if (!selectedTable) {
+      setIsOrderReady(false);
+      return;
+    }
+    const checkReadiness = () => {
+      if (activeOrder?.status === 'READY_FOR_DELIVERY') {
+        setIsOrderReady(true);
+        return;
+      }
+      try {
+        const raw = localStorage.getItem('plateos_active_timers');
+        if (raw) {
+          const timers = JSON.parse(raw);
+          const matchedKey = Object.keys(timers).find(
+            (k) => (orderId && k === orderId) || k.includes(selectedTable.id)
+          );
+          if (matchedKey && timers[matchedKey].status === 'READY_FOR_DELIVERY') {
+            setIsOrderReady(true);
+            return;
+          }
+        }
+      } catch (e) {}
+      setIsOrderReady(false);
+    };
+
+    checkReadiness();
+    const interval = setInterval(checkReadiness, 1000);
+    return () => clearInterval(interval);
+  }, [selectedTable, activeOrder, orderId]);
+
+  const handleDeliverOrder = async () => {
+    if (!orderId || !selectedTable) return;
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: 'SERVED' });
+      try {
+        const raw = localStorage.getItem('plateos_active_timers');
+        if (raw) {
+          const timers = JSON.parse(raw);
+          delete timers[orderId];
+          localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
+        }
+      } catch (err) {}
+
+      if (socket) {
+        socket.emit('order:served', { orderId, tableId: selectedTable.id, tableNumber: selectedTable.number });
+      }
+      await fetchTables();
+    } catch (err) {
+      console.error('Error al entregar pedido', err);
+    }
+  };
 
   const getStatusBadge = (status?: string) => {
+    if (isOrderReady) {
+      return { label: '¡Listo para Entregar!', color: 'bg-emerald-500 text-slate-950 font-black animate-pulse' };
+    }
     switch (status) {
       case 'ORDER_PENDING':
         return { label: 'Comanda', color: 'bg-amber-500 text-black' };
@@ -82,6 +146,17 @@ export const POSBottomToolbar: React.FC<POSBottomToolbarProps> = ({
 
       {/* ── 2. POS ACTION BUTTONS BAR (Version 2 Suite) ── */}
       <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
+        {/* DELIVER ORDER ACTION */}
+        {isOrderReady && (
+          <button
+            onClick={handleDeliverOrder}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-black uppercase tracking-wide transition-all duration-300 hover:scale-105 shrink-0 shadow-lg shadow-emerald-500/30 border border-emerald-300 animate-bounce"
+          >
+            <Truck className="w-4 h-4" />
+            Entregar Pedido
+          </button>
+        )}
+
         {/* PRIMARY ACTIONS */}
         <button
           onClick={onOpenOrderModal}

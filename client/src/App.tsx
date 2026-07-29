@@ -28,6 +28,7 @@ import { useRestaurantStore } from './store/useRestaurantStore';
 import { useAuthStore } from './store/useAuthStore';
 import { useSocket } from './context/SocketContext';
 import { TableItem, Role } from './types';
+import api from './services/api';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'3d' | 'kitchen' | 'payments' | 'goals'>('3d');
@@ -202,17 +203,42 @@ export const App: React.FC = () => {
 
       {/* Alert Banner Notification */}
       {alertNotification && (
-        <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-2.5 text-slate-950 font-black text-xs flex items-center justify-between shadow-xl animate-in slide-in-from-top duration-300 z-30">
+        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 px-6 py-2.5 text-slate-950 font-black text-xs flex items-center justify-between shadow-xl animate-in slide-in-from-top duration-300 z-30">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 animate-bounce" />
-            <span>¡PLATILLO LISTO PARA SERVIR! {alertNotification.message} (Mesa {alertNotification.tableNumber})</span>
+            <span>¡PLATILLO LISTO PARA SERVIR! {alertNotification.message} (Mesa #{alertNotification.tableNumber})</span>
           </div>
-          <button
-            onClick={() => setAlertNotification(null)}
-            className="px-3 py-1 bg-slate-950/80 text-white rounded-lg text-[10px] uppercase font-bold hover:bg-slate-950"
-          >
-            Entendido
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (!alertNotification) return;
+                try {
+                  await api.patch(`/orders/${alertNotification.orderId}/status`, { status: 'SERVED' });
+                  try {
+                    const raw = localStorage.getItem('plateos_active_timers');
+                    if (raw) {
+                      const timers = JSON.parse(raw);
+                      delete timers[alertNotification.orderId];
+                      localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
+                    }
+                  } catch (err) {}
+                  await fetchTables();
+                  setAlertNotification(null);
+                } catch (err) {
+                  console.error('Error entregando pedido', err);
+                }
+              }}
+              className="px-3 py-1 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-lg text-[10px] uppercase font-black tracking-wider flex items-center gap-1 shadow-md border border-emerald-400/40"
+            >
+              🚚 Entregar Pedido
+            </button>
+            <button
+              onClick={() => setAlertNotification(null)}
+              className="px-3 py-1 bg-slate-950/80 text-white rounded-lg text-[10px] uppercase font-bold hover:bg-slate-950"
+            >
+              Entendido
+            </button>
+          </div>
         </div>
       )}
 

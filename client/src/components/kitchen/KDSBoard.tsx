@@ -105,16 +105,22 @@ export const KDSBoard: React.FC = () => {
     setPrepTimes((prev) => ({ ...prev, [orderId]: minutes }));
   };
 
-  const handleStartPrep = (orderId: string) => {
+  const handleStartPrep = async (orderId: string) => {
     const durationMin = prepTimes[orderId] || 15;
     const now = Date.now();
 
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: 'IN_PREPARATION' });
+    } catch (e) {
+      console.error('Error actualizando estado a IN_PREPARATION', e);
+    }
+
     const updatedTimers = {
       ...activeTimers,
-      [orderId]: { start: now, duration: durationMin * 60 * 1000 },
+      [orderId]: { start: now, duration: durationMin * 60 * 1000, status: 'IN_PREPARATION' },
     };
 
-    setActiveTimers(updatedTimers);
+    setActiveTimers(updatedTimers as any);
     saveTimersToStorage(updatedTimers);
 
     if (socket) {
@@ -131,14 +137,21 @@ export const KDSBoard: React.FC = () => {
       await api.patch(`/orders/${order.id}/status`, { status: 'READY_FOR_DELIVERY' });
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
 
-      const updatedTimers = { ...activeTimers };
-      delete updatedTimers[order.id];
-      setActiveTimers(updatedTimers);
+      const updatedTimers = {
+        ...activeTimers,
+        [order.id]: {
+          ...(activeTimers[order.id] || { start: Date.now(), duration: 15 * 60 * 1000 }),
+          status: 'READY_FOR_DELIVERY',
+          readyAt: Date.now(),
+        },
+      };
+      setActiveTimers(updatedTimers as any);
       saveTimersToStorage(updatedTimers);
 
       if (socket) {
         socket.emit('order:ready', {
           orderId: order.id,
+          tableId: order.tableId,
           tableNumber: order.table?.number || 0,
           waiterId: order.waiterId,
         });

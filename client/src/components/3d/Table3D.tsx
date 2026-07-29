@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { TableItem } from '../../types';
 import { CustomerAvatar3D } from './CustomerAvatar3D';
 import { useSocket } from '../../context/SocketContext';
+import { useRestaurantStore } from '../../store/useRestaurantStore';
+import api from '../../services/api';
 
 interface Table3DProps {
   table: TableItem;
@@ -15,10 +17,68 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
   const tableGroupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const [isCallingWaiter, setIsCallingWaiter] = useState(false);
+  const [isOrderReady, setIsOrderReady] = useState(false);
   const { socket } = useSocket();
+  const { fetchTables } = useRestaurantStore();
+
+  const activeOrder = table.orders && table.orders.length > 0 ? table.orders[0] : null;
+  const orderId = activeOrder?.id || table.currentOrderId;
+
+  useEffect(() => {
+    const checkReadiness = () => {
+      if (activeOrder?.status === 'READY_FOR_DELIVERY') {
+        setIsOrderReady(true);
+        return;
+      }
+      try {
+        const raw = localStorage.getItem('plateos_active_timers');
+        if (raw) {
+          const timers = JSON.parse(raw);
+          const matchedKey = Object.keys(timers).find(
+            (k) => (orderId && k === orderId) || k.includes(table.id)
+          );
+          if (matchedKey && timers[matchedKey].status === 'READY_FOR_DELIVERY') {
+            setIsOrderReady(true);
+            return;
+          }
+        }
+      } catch (e) {}
+      setIsOrderReady(false);
+    };
+
+    checkReadiness();
+    const interval = setInterval(checkReadiness, 1000);
+    return () => clearInterval(interval);
+  }, [table, activeOrder, orderId]);
+
+  const handleDeliverOrder = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!orderId) return;
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: 'SERVED' });
+      try {
+        const raw = localStorage.getItem('plateos_active_timers');
+        if (raw) {
+          const timers = JSON.parse(raw);
+          delete timers[orderId];
+          localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
+        }
+      } catch (err) {}
+
+      if (socket) {
+        socket.emit('order:served', { orderId, tableId: table.id, tableNumber: table.number });
+      }
+      await fetchTables();
+    } catch (err) {
+      console.error('Error al entregar pedido', err);
+    }
+  };
 
   // Status colors & text mapping
   const getStatusInfo = () => {
+    if (isOrderReady) {
+      return { color: '#10b981', label: '¡LISTO PARA ENTREGAR!', badgeBg: 'bg-emerald-500 animate-pulse text-slate-950' };
+    }
     switch (table.status) {
       case 'ORDER_PENDING':
         return { color: '#f97316', label: 'Comanda', badgeBg: 'bg-amber-600' };
@@ -80,7 +140,7 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
           color={isCallingWaiter ? '#f43f5e' : statusInfo.color}
           side={THREE.DoubleSide}
           transparent
-          opacity={hovered || isCallingWaiter ? 0.95 : 0.65}
+          opacity={hovered || isCallingWaiter || isOrderReady ? 0.95 : 0.65}
         />
       </mesh>
 
@@ -204,10 +264,10 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
 
       {/* POS Style Floating Badge Overlay */}
       <Html position={[0, 1.6, 0]} center distanceFactor={12} zIndexRange={[10, 1]}>
-        <div className="flex flex-col items-center gap-1 pointer-events-auto select-none">
+        <div className="flex flex-col items-center gap-1.5 pointer-events-auto select-none">
           <div
             className={`px-3 py-1.5 rounded-xl shadow-2xl flex items-center gap-2 border border-white/20 font-extrabold text-xs transition-all duration-300 backdrop-blur-xl ${
-              hovered ? 'scale-110 shadow-blue-500/50' : ''
+              hovered || isOrderReady ? 'scale-110 shadow-emerald-500/50' : ''
             }`}
             style={{
               backgroundColor: '#0f172a',
@@ -218,13 +278,23 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
             <span className="font-black text-sm tracking-tight text-white">
               Mesa {table.number}
             </span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${statusInfo.badgeBg} text-white uppercase font-black tracking-wide`}>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${statusInfo.badgeBg} uppercase font-black tracking-wide`}>
               {statusInfo.label}
             </span>
           </div>
 
+          {/* DELIVER ORDER BUTTON IF READY */}
+          {isOrderReady && (
+            <button
+              onClick={handleDeliverOrder}
+              className="px-3 py-1.5 rounded-xl text-xs font-black uppercase bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-xl animate-bounce hover:scale-105 transition-all border border-emerald-300 flex items-center gap-1"
+            >
+              🚚 Entregar Pedido
+            </button>
+          )}
+
           {/* Table Call Waiter Button */}
-          {table.status !== 'AVAILABLE' && (
+          {table.status !== 'AVAILABLE' && !isOrderReady && (
             <button
               onClick={handleCallWaiter}
               className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all shadow-lg ${

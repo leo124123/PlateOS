@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js';
 
-const mockTables = [
+export const mockTables = [
   // Row 1 (Z = -8)
   { id: 'tbl-1',  number: 1,  name: 'Mesa 1',  capacity: 4, positionX: -10,  positionY: 0, positionZ: -8, rotationY: 0, shape: 'ROUND',     status: 'AVAILABLE',      currentOrderId: null },
   { id: 'tbl-2',  number: 2,  name: 'Mesa 2',  capacity: 2, positionX: -3.5, positionY: 0, positionZ: -8, rotationY: 0, shape: 'SQUARE',    status: 'ORDER_PENDING',  currentOrderId: 'ord-101' },
@@ -29,7 +29,22 @@ const mockTables = [
 export class TableService {
   static async getAllTables() {
     try {
-      const dbTables = await prisma.table.findMany({ orderBy: { number: 'asc' } });
+      const dbTables = await prisma.table.findMany({
+        orderBy: { number: 'asc' },
+        include: {
+          orders: {
+            where: {
+              status: { in: ['PENDING', 'ACCEPTED_BY_WAITER', 'IN_PREPARATION', 'READY_FOR_DELIVERY', 'SERVED'] },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            include: {
+              waiter: { select: { id: true, name: true } },
+              items: { include: { menuItem: true } },
+            },
+          },
+        },
+      });
       if (dbTables.length > 0) return dbTables;
       return mockTables;
     } catch (e) {
@@ -37,15 +52,20 @@ export class TableService {
     }
   }
 
-  static async updateTableStatus(id: string, status: any) {
+  static async updateTableStatus(id: string, status: any, currentOrderId?: string | null) {
     try {
+      const data: any = { status };
+      if (currentOrderId !== undefined) data.currentOrderId = currentOrderId;
       return await prisma.table.update({
         where: { id },
-        data: { status },
+        data,
       });
     } catch (e) {
       const tbl = mockTables.find((t) => t.id === id);
-      if (tbl) tbl.status = status;
+      if (tbl) {
+        tbl.status = status;
+        if (currentOrderId !== undefined) tbl.currentOrderId = currentOrderId;
+      }
       return tbl || { id, status };
     }
   }

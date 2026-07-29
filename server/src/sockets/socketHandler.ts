@@ -43,23 +43,33 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       logger.info(`Cliente ${socket.id} (${socket.user?.name}) se unió a la sala: ${room}`);
     });
 
-    // 1. Order created by Waiter -> Notify Kitchen
+    // 1. Order created by Waiter -> Notify Kitchen & All
     socket.on('order:new', (orderData: any) => {
       logger.info(`⚡ Nuevo pedido #${orderData.orderNumber} para Mesa ${orderData.table?.number}`);
       io.to('kitchen').emit('kitchen:order_new', orderData);
-      io.to('waiters').emit('table:updated', { tableId: orderData.tableId, status: 'ORDER_PENDING' });
+      io.emit('table:updated', { tableId: orderData.tableId, status: 'ORDER_PENDING' });
     });
 
-    // 2. Kitchen marks order as READY_FOR_DELIVERY -> Notify Waiter
-    socket.on('order:ready', (payload: { orderId: string; tableNumber: number; waiterId?: string }) => {
+    // 2. Kitchen marks order as READY_FOR_DELIVERY -> Notify Waiter & All
+    socket.on('order:ready', (payload: { orderId: string; tableNumber: number; tableId?: string; waiterId?: string }) => {
       logger.info(`🔔 ¡PEDIDO LISTO EN COCINA! Mesa #${payload.tableNumber}`);
-      io.to('waiters').emit('waiter:order_ready_alert', {
+      io.emit('waiter:order_ready_alert', {
         message: `¡El pedido de la Mesa ${payload.tableNumber} está LISTO para servir!`,
         tableNumber: payload.tableNumber,
+        tableId: payload.tableId,
         orderId: payload.orderId,
         waiterId: payload.waiterId,
         timestamp: new Date(),
       });
+      io.emit('table:updated', { tableId: payload.tableId });
+      io.emit('order:status_changed', { orderId: payload.orderId, status: 'READY_FOR_DELIVERY' });
+    });
+
+    // 3. Order served by Waiter -> Notify All
+    socket.on('order:served', (payload: { orderId: string; tableId?: string; tableNumber?: number }) => {
+      logger.info(`🚚 Pedido #${payload.orderId} entregado por el mesero.`);
+      io.emit('table:updated', { tableId: payload.tableId });
+      io.emit('order:status_changed', { orderId: payload.orderId, status: 'SERVED' });
     });
 
     // 3. Status change update

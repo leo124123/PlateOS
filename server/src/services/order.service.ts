@@ -1,4 +1,5 @@
 import prisma from '../config/prisma.js';
+import { mockTables } from './table.service.js';
 
 let mockOrders: any[] = [];
 
@@ -83,6 +84,7 @@ export class OrderService {
       return createdOrder;
     } catch (e) {
       // Mock fallback for offline/demo environment
+      const targetTable = mockTables.find((t) => t.id === data.tableId);
       const mockOrder = {
         id: `ord-${Date.now()}`,
         orderNumber: Math.floor(1000 + Math.random() * 9000),
@@ -103,10 +105,15 @@ export class OrderService {
           notes: i.notes,
           menuItem: { id: i.menuItemId, name: i.name, price: i.unitPrice },
         })),
-        table: { id: data.tableId, number: 1 },
+        table: targetTable || { id: data.tableId, number: 1 },
         waiter: { id: 'demo-waiter', name: 'Carlos Mendoza' },
       };
       mockOrders.push(mockOrder);
+      if (targetTable) {
+        targetTable.status = 'ORDER_PENDING';
+        targetTable.currentOrderId = mockOrder.id;
+        (targetTable as any).orders = [mockOrder];
+      }
       return mockOrder;
     }
   }
@@ -154,7 +161,22 @@ export class OrderService {
       });
     } catch (e) {
       const order = mockOrders.find((o) => o.id === id);
-      if (order) order.status = status;
+      if (order) {
+        order.status = status;
+        const tbl = mockTables.find((t) => t.id === order.tableId);
+        if (tbl) {
+          if (status === 'SERVED') {
+            tbl.status = 'EATING';
+            (tbl as any).orders = [order];
+          } else if (status === 'CANCELLED') {
+            tbl.status = 'AVAILABLE';
+            tbl.currentOrderId = null;
+            (tbl as any).orders = [];
+          } else {
+            (tbl as any).orders = [order];
+          }
+        }
+      }
       return order || { id, status };
     }
   }

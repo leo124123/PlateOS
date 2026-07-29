@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Info, Clock, User, DollarSign, UtensilsCrossed, X, ChefHat, Timer } from 'lucide-react';
+import { Info, Clock, User, DollarSign, UtensilsCrossed, X, ChefHat, Timer, CheckCircle2, Truck } from 'lucide-react';
 import { TableItem } from '../../../types';
+import { useSocket } from '../../../context/SocketContext';
+import { useRestaurantStore } from '../../../store/useRestaurantStore';
+import api from '../../../services/api';
 
 interface TableInfoModalProps {
   table: TableItem;
@@ -8,33 +11,41 @@ interface TableInfoModalProps {
 }
 
 export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }) => {
-  const [activeTimerInfo, setActiveTimerInfo] = useState<{ start: number; duration: number } | null>(null);
+  const [activeTimerInfo, setActiveTimerInfo] = useState<{ start: number; duration: number; status?: string } | null>(null);
   const [, setTick] = useState(0);
+  const [isOrderReady, setIsOrderReady] = useState(false);
+  const { socket } = useSocket();
+  const { fetchTables } = useRestaurantStore();
+
+  const activeOrder = table.orders && table.orders.length > 0 ? table.orders[0] : null;
+  const orderId = activeOrder?.id || table.currentOrderId;
 
   // Read synced timer for table's current order from localStorage
   useEffect(() => {
     const updateTimerFromStorage = () => {
+      if (activeOrder?.status === 'READY_FOR_DELIVERY') {
+        setIsOrderReady(true);
+      }
       try {
         const raw = localStorage.getItem('plateos_active_timers');
         if (raw) {
           const timers = JSON.parse(raw);
-          // Match by orderId if available, or fallback to table active order
-          const activeOrder = table.orders && table.orders.length > 0 ? table.orders[0] : null;
-          const orderId = activeOrder?.id || table.currentOrderId || table.id;
+          const activeOrd = table.orders && table.orders.length > 0 ? table.orders[0] : null;
+          const ordId = activeOrd?.id || table.currentOrderId || table.id;
           
-          if (timers[orderId]) {
-            setActiveTimerInfo(timers[orderId]);
+          if (timers[ordId]) {
+            setActiveTimerInfo(timers[ordId]);
+            if (timers[ordId].status === 'READY_FOR_DELIVERY') setIsOrderReady(true);
             return;
           }
 
-          // Fallback check: find any timer matching table ID keys
-          const matchedKey = Object.keys(timers).find((k) => k.includes(table.id) || (activeOrder && k.includes(activeOrder.id)));
+          const matchedKey = Object.keys(timers).find((k) => k.includes(table.id) || (activeOrd && k.includes(activeOrd.id)));
           if (matchedKey) {
             setActiveTimerInfo(timers[matchedKey]);
+            if (timers[matchedKey].status === 'READY_FOR_DELIVERY') setIsOrderReady(true);
             return;
           }
         }
-        setActiveTimerInfo(null);
       } catch (e) {}
     };
 
@@ -45,7 +56,30 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [table]);
+  }, [table, activeOrder]);
+
+  const handleDeliverOrder = async () => {
+    if (!orderId) return;
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: 'SERVED' });
+      try {
+        const raw = localStorage.getItem('plateos_active_timers');
+        if (raw) {
+          const timers = JSON.parse(raw);
+          delete timers[orderId];
+          localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
+        }
+      } catch (err) {}
+
+      if (socket) {
+        socket.emit('order:served', { orderId, tableId: table.id, tableNumber: table.number });
+      }
+      await fetchTables();
+      onClose();
+    } catch (err) {
+      console.error('Error al entregar pedido', err);
+    }
+  };
 
   let progressPercent = 0;
   let remainingSeconds = 0;
@@ -59,13 +93,15 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
   const remMin = Math.floor(remainingSeconds / 60);
   const remSec = remainingSeconds % 60;
 
-  const mockItems = [
-    { name: 'Lomo Saltado Gourmet', qty: 2, price: 24.50 },
-    { name: 'Ceviche Mixto Tradicional', qty: 1, price: 28.00 },
-    { name: 'Pisco Sour Catedral', qty: 3, price: 12.00 },
-  ];
+  const itemsToDisplay = activeOrder?.items && activeOrder.items.length > 0
+    ? activeOrder.items.map((i) => ({ name: i.menuItem?.name || 'Platillo', qty: i.quantity, price: i.unitPrice }))
+    : [
+        { name: 'Lomo Saltado Gourmet', qty: 2, price: 24.50 },
+        { name: 'Ceviche Mixto Tradicional', qty: 1, price: 28.00 },
+        { name: 'Pisco Sour Catedral', qty: 3, price: 12.00 },
+      ];
 
-  const subtotal = mockItems.reduce((acc, item) => acc + item.qty * item.price, 0);
+  const subtotal = itemsToDisplay.reduce((acc, item) => acc + item.qty * item.price, 0);
   const tax = subtotal * 0.18;
   const total = subtotal + tax;
 
@@ -117,7 +153,24 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
 
         {/* ── KITCHEN PREPARATION TIMER & PROGRESS BAR FOR WAITERS ── */}
         {table.status !== 'AVAILABLE' && (
-          activeTimerInfo ? (
+          isOrderReady ? (
+            <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 flex flex-col gap-3 shadow-lg shadow-emerald-500/10 animate-in zoom-in-95">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400 animate-bounce" />
+                <div>
+                  <h4 className="text-sm font-black text-emerald-300">¡Cocina finalizó este pedido!</h4>
+                  <p className="text-xs text-emerald-200/80">El platillo está listo para ser servido al cliente en la Mesa #{table.number}.</p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleDeliverOrder}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-102"
+              >
+                <Truck className="w-4 h-4" /> 🚚 Marcar Pedido como Entregado / Servido
+              </button>
+            </div>
+          ) : activeTimerInfo ? (
             <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-col gap-2 shadow-inner">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-black text-amber-400 flex items-center gap-1.5">
@@ -164,7 +217,7 @@ export const TableInfoModal: React.FC<TableInfoModalProps> = ({ table, onClose }
                 Mesa disponible — No hay consumo registrado.
               </div>
             ) : (
-              mockItems.map((item, idx) => (
+              itemsToDisplay.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between py-1.5 border-b border-slate-800/60 last:border-0 text-xs">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-md bg-cyan-950 text-cyan-400 font-black flex items-center justify-center text-[11px]">
