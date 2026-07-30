@@ -80,7 +80,7 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     // 4. Customer calling waiter alert animation trigger
     socket.on('customer:call_waiter', (data: { tableNumber: number; tableId: string }) => {
       logger.info(`🕺 Mesa ${data.tableNumber} solicitando atención del mesero.`);
-      io.to('waiters').emit('waiter:customer_calling', data);
+      io.emit('waiter:customer_calling', data);
     });
 
     socket.on('disconnect', () => {

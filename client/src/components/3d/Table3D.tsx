@@ -51,6 +51,20 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
     return () => clearInterval(interval);
   }, [table, activeOrder, orderId]);
 
+  useEffect(() => {
+    if (!socket) return;
+    const handleCalling = (data: { tableId: string; tableNumber: number }) => {
+      if (data.tableId === table.id || data.tableNumber === table.number) {
+        setIsCallingWaiter(true);
+        setTimeout(() => setIsCallingWaiter(false), 8000);
+      }
+    };
+    socket.on('waiter:customer_calling', handleCalling);
+    return () => {
+      socket.off('waiter:customer_calling', handleCalling);
+    };
+  }, [socket, table.id, table.number]);
+
   const handleDeliverOrder = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!orderId) return;

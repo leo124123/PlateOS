@@ -54,6 +54,22 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
 
+    newSocket.on('waiter:customer_calling', (data: { tableNumber: number; tableId: string }) => {
+      fetchTables();
+      if (user?.role === 'WAITER' || user?.role === 'ADMIN') {
+        setAlertNotification({
+          orderId: '',
+          tableId: data.tableId,
+          tableNumber: data.tableNumber,
+          message: `🔔 ¡Mesa #${data.tableNumber} está llamando al mesero!`,
+        });
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(() => {});
+        } catch (e) {}
+      }
+    });
+
     setSocket(newSocket);
 
     return () => {
