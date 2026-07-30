@@ -307,18 +307,11 @@ export const Table3D: React.FC<Table3DProps> = ({ table, onSelectTable }) => {
             </button>
           )}
 
-          {/* Table Call Waiter Button */}
-          {table.status !== 'AVAILABLE' && !isOrderReady && (
-            <button
-              onClick={handleCallWaiter}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all shadow-lg ${
-                isCallingWaiter
-                  ? 'bg-rose-600 text-white animate-bounce shadow-rose-600/50'
-                  : 'bg-slate-900/90 text-amber-300 hover:bg-amber-400 hover:text-slate-950 border border-amber-400/40'
-              }`}
-            >
-              {isCallingWaiter ? '🔔 ¡Llamando!' : '🛎️ Llamar Mozo'}
-            </button>
+          {/* Table Customer Calling Indicator (Triggered strictly from Mobile App) */}
+          {isCallingWaiter && (
+            <div className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-rose-600 text-white animate-bounce shadow-lg shadow-rose-600/50 flex items-center gap-1 border border-rose-300">
+              🔔 ¡SOLICITANDO ATENCIÓN!
+            </div>
           )}
         </div>
       </Html>
