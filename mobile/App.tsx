@@ -3,10 +3,10 @@ import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useClientStore } from './src/store/useClientStore';
 import { TablePinModal } from './src/components/TablePinModal';
 import { QRCameraScanner } from './src/components/QRCameraScanner';
@@ -34,72 +34,74 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#020617" />
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor="#020617" />
 
-      {!connectedTable ? (
-        <View style={styles.flexOne}>
-          <TablePinModal
-            onConnect={handleConnect}
-            onOpenScanner={() => setIsScannerOpen(true)}
-            isConnecting={isConnecting}
-          />
-          <QRCameraScanner
-            visible={isScannerOpen}
-            onClose={() => setIsScannerOpen(false)}
-            onScanSuccess={handleConnect}
-          />
-        </View>
-      ) : (
-        <View style={styles.flexOne}>
-          <CustomerHeader table={connectedTable} onDisconnect={disconnectTable} />
-          <CallWaiterButton />
-          <View style={styles.contentArea}>
-            {activeTab === 'menu' ? <DigitalMenu /> : <OrderTracker />}
+        {!connectedTable ? (
+          <View style={styles.flexOne}>
+            <TablePinModal
+              onConnect={handleConnect}
+              onOpenScanner={() => setIsScannerOpen(true)}
+              isConnecting={isConnecting}
+            />
+            <QRCameraScanner
+              visible={isScannerOpen}
+              onClose={() => setIsScannerOpen(false)}
+              onScanSuccess={handleConnect}
+            />
           </View>
+        ) : (
+          <View style={styles.flexOne}>
+            <CustomerHeader table={connectedTable} onDisconnect={disconnectTable} />
+            <CallWaiterButton />
+            <View style={styles.contentArea}>
+              {activeTab === 'menu' ? <DigitalMenu /> : <OrderTracker />}
+            </View>
 
-          {/* Bottom Navigation */}
-          <View style={styles.bottomNav}>
-            <TouchableOpacity
-              style={[styles.navBtn, activeTab === 'menu' && styles.navBtnActive]}
-              onPress={() => setActiveTab('menu')}
-            >
-              <Text style={styles.navIcon}>🍽️</Text>
-              <Text
-                style={[
-                  styles.navBtnText,
-                  activeTab === 'menu' && styles.navBtnTextActive,
-                ]}
+            {/* Bottom Navigation */}
+            <View style={styles.bottomNav}>
+              <TouchableOpacity
+                style={[styles.navBtn, activeTab === 'menu' && styles.navBtnActive]}
+                onPress={() => setActiveTab('menu')}
               >
-                Menú Digital
-              </Text>
-            </TouchableOpacity>
+                <Text style={styles.navIcon}>🍽️</Text>
+                <Text
+                  style={[
+                    styles.navBtnText,
+                    activeTab === 'menu' && styles.navBtnTextActive,
+                  ]}
+                >
+                  Menú Digital
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.navBtn, activeTab === 'order' && styles.navBtnActive]}
-              onPress={() => setActiveTab('order')}
-            >
-              <View style={styles.iconBadgeWrapper}>
-                <Text style={styles.navIcon}>🛒</Text>
-                {cartTotalItems > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{cartTotalItems}</Text>
-                  </View>
-                )}
-              </View>
-              <Text
-                style={[
-                  styles.navBtnText,
-                  activeTab === 'order' && styles.navBtnTextActive,
-                ]}
+              <TouchableOpacity
+                style={[styles.navBtn, activeTab === 'order' && styles.navBtnActive]}
+                onPress={() => setActiveTab('order')}
               >
-                Mi Pedido
-              </Text>
-            </TouchableOpacity>
+                <View style={styles.iconBadgeWrapper}>
+                  <Text style={styles.navIcon}>🛒</Text>
+                  {cartTotalItems > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{cartTotalItems}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.navBtnText,
+                    activeTab === 'order' && styles.navBtnTextActive,
+                  ]}
+                >
+                  Mi Pedido
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      )}
-    </SafeAreaView>
+        )}
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

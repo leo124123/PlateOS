@@ -1,13 +1,23 @@
 import { io, Socket } from 'socket.io-client';
-import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-const DEFAULT_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+// Auto-detect the dev machine's local IP from Expo's manifest
+const getServerHost = (): string => {
+  const debuggerHost = Constants.expoConfig?.hostUri;
+  if (debuggerHost) {
+    const ip = debuggerHost.split(':')[0];
+    return `http://${ip}:3000`;
+  }
+  return 'http://192.168.100.150:3000';
+};
+
+const SERVER_HOST = getServerHost();
 
 let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = io(DEFAULT_HOST, {
+    socket = io(SERVER_HOST, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
     });
