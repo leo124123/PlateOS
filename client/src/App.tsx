@@ -25,6 +25,7 @@ import { TransferTableModal } from './components/pos/modals/TransferTableModal';
 import { SplitBillModal } from './components/pos/modals/SplitBillModal';
 import { TableInfoModal } from './components/pos/modals/TableInfoModal';
 import { SubtotalPreviewModal } from './components/pos/modals/SubtotalPreviewModal';
+import { QRGeneratorModal } from './components/pos/modals/QRGeneratorModal';
 import { useRestaurantStore } from './store/useRestaurantStore';
 import { useAuthStore } from './store/useAuthStore';
 import { useSocket } from './context/SocketContext';
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
   const [isTableInfoModalOpen, setIsTableInfoModalOpen] = useState(false);
   const [isSubtotalModalOpen, setIsSubtotalModalOpen] = useState(false);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   const {
     tables,
@@ -273,6 +275,7 @@ export const App: React.FC = () => {
           onOpenSplitModal={() => selectedTable && setIsSplitModalOpen(true)}
           onOpenInfoModal={() => selectedTable && setIsTableInfoModalOpen(true)}
           onOpenSubtotalModal={() => selectedTable && setIsSubtotalModalOpen(true)}
+          onOpenQRModal={() => setIsQRModalOpen(true)}
         />
       )}
 
@@ -326,6 +329,13 @@ export const App: React.FC = () => {
         <SubtotalPreviewModal
           table={selectedTable}
           onClose={() => setIsSubtotalModalOpen(false)}
+        />
+      )}
+
+      {isQRModalOpen && (
+        <QRGeneratorModal
+          tables={tables}
+          onClose={() => setIsQRModalOpen(false)}
         />
       )}
     </div>

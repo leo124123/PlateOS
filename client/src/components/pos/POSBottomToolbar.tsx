@@ -12,7 +12,8 @@ import {
   BellRing,
   Sparkles,
   Layers,
-  Truck
+  Truck,
+  QrCode
 } from 'lucide-react';
 import { useRestaurantStore } from '../../store/useRestaurantStore';
 import { useSocket } from '../../context/SocketContext';
@@ -26,6 +27,7 @@ interface POSBottomToolbarProps {
   onOpenSplitModal: () => void;
   onOpenInfoModal: () => void;
   onOpenSubtotalModal: () => void;
+  onOpenQRModal?: () => void;
 }
 
 export const POSBottomToolbar: React.FC<POSBottomToolbarProps> = ({
@@ -36,6 +38,7 @@ export const POSBottomToolbar: React.FC<POSBottomToolbarProps> = ({
   onOpenSplitModal,
   onOpenInfoModal,
   onOpenSubtotalModal,
+  onOpenQRModal,
 }) => {
   const { selectedTable, setSelectedTable, fetchTables } = useRestaurantStore();
   const { socket } = useSocket();
@@ -247,6 +250,16 @@ export const POSBottomToolbar: React.FC<POSBottomToolbarProps> = ({
           <BookOpen className="w-3.5 h-3.5 text-amber-400" />
           Menú
         </button>
+
+        {onOpenQRModal && (
+          <button
+            onClick={onOpenQRModal}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black uppercase tracking-wide transition-all shrink-0 border border-amber-300 shadow-md shadow-amber-500/20 hover:scale-105"
+          >
+            <QrCode className="w-4 h-4 text-slate-950" />
+            📱 QR Mesas
+          </button>
+        )}
       </div>
     </div>
   );

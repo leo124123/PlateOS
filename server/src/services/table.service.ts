@@ -82,4 +82,41 @@ export class TableService {
       return tbl || { id, ...coords };
     }
   }
+
+  static async getTableByCode(code: string) {
+    const cleanCode = code.trim().toLowerCase().replace('plateos://table/', '').replace('table/', '').replace('tbl-', '');
+    const num = parseInt(cleanCode, 10);
+    try {
+      let dbTable = null;
+      if (!isNaN(num)) {
+        dbTable = await prisma.table.findFirst({
+          where: { OR: [{ number: num }, { id: code }] },
+          include: {
+            orders: {
+              where: { status: { in: ['PENDING', 'ACCEPTED_BY_WAITER', 'IN_PREPARATION', 'READY_FOR_DELIVERY', 'SERVED'] } },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              include: { items: { include: { menuItem: true } } }
+            }
+          }
+        });
+      } else {
+        dbTable = await prisma.table.findUnique({
+          where: { id: code },
+          include: {
+            orders: {
+              where: { status: { in: ['PENDING', 'ACCEPTED_BY_WAITER', 'IN_PREPARATION', 'READY_FOR_DELIVERY', 'SERVED'] } },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              include: { items: { include: { menuItem: true } } }
+            }
+          }
+        });
+      }
+      if (dbTable) return dbTable;
+    } catch (e) {}
+
+    const foundMock = mockTables.find((t) => t.id === code || t.number === num || t.name.toLowerCase().includes(cleanCode));
+    return foundMock || mockTables[0];
+  }
 }

@@ -21,3 +21,9 @@ export const updateTablePosition = asyncWrap(async (req: Request, res: Response)
   const updated = await TableService.updateTablePosition(id, { positionX, positionY, positionZ, rotationY });
   return sendSuccess(res, updated, 'Posición 3D de mesa actualizada');
 });
+
+export const getTableByCode = asyncWrap(async (req: Request, res: Response) => {
+  const { code } = req.params;
+  const table = await TableService.getTableByCode(code);
+  return sendSuccess(res, table, 'Mesa conectada exitosamente');
+});
