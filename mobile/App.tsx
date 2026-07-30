@@ -21,13 +21,10 @@ export default function App() {
     connectTable,
     disconnectTable,
     isConnecting,
-    cart,
   } = useClientStore();
 
-  const [activeTab, setActiveTab] = useState<'menu' | 'order'>('menu');
+  const [activeTab, setActiveTab] = useState<'inicio' | 'menu' | 'reservas' | 'experiencias' | 'mesa'>('inicio');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-
-  const cartTotalItems = cart.reduce((acc, i) => acc + i.quantity, 0);
 
   const handleConnect = async (tableCode: string) => {
     await connectTable(tableCode);
@@ -36,7 +33,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" backgroundColor="#020617" />
+        <StatusBar barStyle="light-content" backgroundColor="#090a0f" />
 
         {!connectedTable ? (
           <View style={styles.flexOne}>
@@ -55,39 +52,65 @@ export default function App() {
           <View style={styles.flexOne}>
             <CustomerHeader table={connectedTable} onDisconnect={disconnectTable} />
             <CallWaiterButton />
+
             <View style={styles.contentArea}>
-              {activeTab === 'menu' ? <DigitalMenu /> : <OrderTracker />}
+              {activeTab === 'mesa' ? <OrderTracker /> : <DigitalMenu />}
             </View>
 
-            {/* Bottom Navigation */}
+            {/* Luxury Bottom Navigation Bar (Matches AURUM Mockup) */}
             <View style={styles.bottomNav}>
               <TouchableOpacity
-                style={[styles.navBtn, activeTab === 'menu' && styles.navBtnActive]}
-                onPress={() => setActiveTab('menu')}
+                style={styles.navBtn}
+                onPress={() => setActiveTab('inicio')}
+                activeOpacity={0.8}
               >
-                <Text style={styles.navIcon}>🍽️</Text>
-                <Text
-                  style={[
-                    styles.navBtnText,
-                    activeTab === 'menu' && styles.navBtnTextActive,
-                  ]}
-                >
-                  Menú Digital
+                <Text style={[styles.navIcon, activeTab === 'inicio' && styles.navIconActive]}>🏠</Text>
+                <Text style={[styles.navBtnText, activeTab === 'inicio' && styles.navBtnTextActive]}>
+                  INICIO
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.navBtn, activeTab === 'order' && styles.navBtnActive]}
-                onPress={() => setActiveTab('order')}
+                style={styles.navBtn}
+                onPress={() => setActiveTab('menu')}
+                activeOpacity={0.8}
               >
-                <Text style={styles.navIcon}>📋</Text>
-                <Text
-                  style={[
-                    styles.navBtnText,
-                    activeTab === 'order' && styles.navBtnTextActive,
-                  ]}
-                >
-                  Mi Mesa / Cuenta
+                <Text style={[styles.navIcon, activeTab === 'menu' && styles.navIconActive]}>📖</Text>
+                <Text style={[styles.navBtnText, activeTab === 'menu' && styles.navBtnTextActive]}>
+                  MENÚ
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.navBtn}
+                onPress={() => setActiveTab('reservas')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.navIcon, activeTab === 'reservas' && styles.navIconActive]}>📅</Text>
+                <Text style={[styles.navBtnText, activeTab === 'reservas' && styles.navBtnTextActive]}>
+                  RESERVAS
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.navBtn}
+                onPress={() => setActiveTab('experiencias')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.navIcon, activeTab === 'experiencias' && styles.navIconActive]}>✨</Text>
+                <Text style={[styles.navBtnText, activeTab === 'experiencias' && styles.navBtnTextActive]}>
+                  EXPERIENCIAS
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.navBtn}
+                onPress={() => setActiveTab('mesa')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.navIcon, activeTab === 'mesa' && styles.navIconActive]}>👤</Text>
+                <Text style={[styles.navBtnText, activeTab === 'mesa' && styles.navBtnTextActive]}>
+                  MI MESA
                 </Text>
               </TouchableOpacity>
             </View>
@@ -101,7 +124,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: '#090a0f',
   },
   flexOne: {
     flex: 1,
@@ -111,51 +134,39 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#0d0e15',
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: 'rgba(212, 175, 55, 0.15)',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     justifyContent: 'space-around',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   navBtn: {
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-  },
-  navBtnActive: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    paddingVertical: 4,
+    flex: 1,
   },
   navIcon: {
-    fontSize: 20,
+    fontSize: 18,
+    opacity: 0.5,
+  },
+  navIconActive: {
+    opacity: 1,
   },
   navBtnText: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '800',
-    color: '#64748b',
+    color: '#7e8494',
     marginTop: 4,
+    letterSpacing: 0.5,
   },
   navBtnTextActive: {
-    color: '#f59e0b',
-  },
-  iconBadgeWrapper: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -10,
-    backgroundColor: '#f59e0b',
-    borderRadius: 8,
-    width: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#0f172a',
-    fontSize: 9,
+    color: '#d4af37',
     fontWeight: '900',
   },
 });

@@ -10,27 +10,25 @@ interface CustomerHeaderProps {
 export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconnect }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.leftGroup}>
-        <View style={styles.logoBadge}>
-          <Text style={styles.logoEmoji}>👑</Text>
-        </View>
-        <View>
-          <Text style={styles.brandTitle}>
-            Plate<Text style={styles.brandAccent}>OS</Text> <Text style={styles.brandSubTag}>GOURMET</Text>
-          </Text>
-          <View style={styles.statusRow}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Mesa #{table.number} • En Vivo</Text>
-          </View>
-        </View>
+      {/* Left Menu Button */}
+      <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+        <Text style={styles.menuIcon}>☰</Text>
+      </TouchableOpacity>
+
+      {/* Center Brand Title */}
+      <View style={styles.brandContainer}>
+        <Text style={styles.brandTitle}>PLATEOS</Text>
+        <Text style={styles.brandSub}>GOURMET</Text>
       </View>
 
+      {/* Right Table Badge & Disconnect */}
       <View style={styles.rightGroup}>
         <View style={styles.tableBadge}>
+          <View style={styles.liveDot} />
           <Text style={styles.tableBadgeText}>Mesa #{table.number}</Text>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={onDisconnect} activeOpacity={0.8}>
-          <Text style={styles.logoutEmoji}>🚪</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={onDisconnect} activeOpacity={0.7}>
+          <Text style={styles.logoutIcon}>🚪</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -43,60 +41,44 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#0f172a',
-    borderBottomWidth: 1.5,
-    borderBottomColor: 'rgba(245, 158, 11, 0.25)',
+    paddingTop: 10,
+    paddingBottom: 12,
+    backgroundColor: '#090a0f',
   },
-  leftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  logoEmoji: {
-    fontSize: 18,
+  menuIcon: {
+    color: '#d4af37',
+    fontSize: 20,
+    fontWeight: '300',
+  },
+  logoutIcon: {
+    fontSize: 16,
+  },
+  brandContainer: {
+    alignItems: 'center',
   },
   brandTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: -0.3,
+    color: '#d4af37',
+    letterSpacing: 4,
+    fontFamily: 'serif',
   },
-  brandAccent: {
-    color: '#f59e0b',
-  },
-  brandSubTag: {
+  brandSub: {
     fontSize: 9,
-    fontWeight: '900',
-    color: '#f59e0b',
-    letterSpacing: 1,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 1,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#10b981',
-  },
-  liveText: {
-    fontSize: 10,
     fontWeight: '800',
-    color: '#10b981',
+    color: '#c59b27',
+    letterSpacing: 3,
+    marginTop: -2,
   },
   rightGroup: {
     flexDirection: 'row',
@@ -104,26 +86,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tableBadge: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    borderRadius: 12,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10b981',
   },
   tableBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '900',
-    color: '#f59e0b',
-  },
-  logoutButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#1e293b',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  logoutEmoji: {
-    fontSize: 14,
+    color: '#d4af37',
+    letterSpacing: 0.5,
   },
 });
