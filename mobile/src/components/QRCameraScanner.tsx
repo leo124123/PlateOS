@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions } from 'react-native';
-import { X, QrCode, Sparkles, CheckCircle2 } from 'lucide-react-native';
 
 interface QRCameraScannerProps {
   visible: boolean;
@@ -32,9 +31,9 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
       <View style={styles.container}>
         {/* Top Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Escáner QR de Mesa</Text>
+          <Text style={styles.headerTitle}>📷 Escáner QR de Mesa</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={22} color="#ffffff" />
+            <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
 
@@ -45,7 +44,7 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
             <View style={[styles.corner, styles.cornerTR]} />
             <View style={[styles.corner, styles.cornerBL]} />
             <View style={[styles.corner, styles.cornerBR]} />
-            <QrCode size={64} color="#f59e0b" style={{ opacity: 0.6 }} />
+            <Text style={styles.qrPlaceholder}>📱</Text>
           </View>
           <Text style={styles.scanHint}>Apunta la cámara al código QR impreso en el acrílico de tu mesa</Text>
         </View>
@@ -63,18 +62,13 @@ export const QRCameraScanner: React.FC<QRCameraScannerProps> = ({
                 ]}
                 onPress={() => handleSimulateScan(tableNum)}
               >
-                {selectedSimulatedTable === tableNum ? (
-                  <CheckCircle2 size={14} color="#0f172a" />
-                ) : (
-                  <Sparkles size={12} color="#f59e0b" />
-                )}
                 <Text
                   style={[
                     styles.simPillText,
                     selectedSimulatedTable === tableNum && styles.simPillTextActive,
                   ]}
                 >
-                  QR Mesa #{tableNum}
+                  {selectedSimulatedTable === tableNum ? '✅' : '⚡'} QR Mesa #{tableNum}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -111,6 +105,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  closeText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '900',
+  },
   viewportContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -125,6 +124,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
     position: 'relative',
+  },
+  qrPlaceholder: {
+    fontSize: 64,
+    opacity: 0.6,
   },
   corner: {
     position: 'absolute',

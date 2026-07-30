@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { UtensilsCrossed, LogOut, Wifi } from 'lucide-react-native';
 import { TableItem } from '../types';
 
 interface CustomerHeaderProps {
@@ -13,7 +12,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconn
     <View style={styles.container}>
       <View style={styles.leftGroup}>
         <View style={styles.logoBadge}>
-          <UtensilsCrossed size={18} color="#0f172a" />
+          <Text style={styles.logoEmoji}>🍽️</Text>
         </View>
         <View>
           <Text style={styles.brandTitle}>
@@ -31,7 +30,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconn
           <Text style={styles.tableBadgeText}>Mesa #{table.number}</Text>
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={onDisconnect}>
-          <LogOut size={16} color="#94a3b8" />
+          <Text style={styles.logoutEmoji}>🚪</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -61,6 +60,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f59e0b',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  logoEmoji: {
+    fontSize: 18,
   },
   brandTitle: {
     fontSize: 16,
@@ -109,5 +111,8 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 10,
     backgroundColor: '#1e293b',
+  },
+  logoutEmoji: {
+    fontSize: 14,
   },
 });

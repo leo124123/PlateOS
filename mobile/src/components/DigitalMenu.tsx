@@ -7,9 +7,7 @@ import {
   ScrollView,
   TextInput,
   Image,
-  FlatList,
 } from 'react-native';
-import { Search, Plus, Minus, Utensils, Clock, ShoppingBag } from 'lucide-react-native';
 import { useClientStore } from '../store/useClientStore';
 import { MenuItem } from '../types';
 
@@ -51,7 +49,7 @@ export const DigitalMenu: React.FC = () => {
     <View style={styles.container}>
       {/* Search Input */}
       <View style={styles.searchContainer}>
-        <Search size={16} color="#f59e0b" />
+        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar platillo por nombre..."
@@ -95,7 +93,7 @@ export const DigitalMenu: React.FC = () => {
       <ScrollView contentContainerStyle={styles.menuGrid} showsVerticalScrollIndicator={false}>
         {filteredItems.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Utensils size={40} color="#334155" />
+            <Text style={styles.emptyIcon}>🍽️</Text>
             <Text style={styles.emptyText}>No se encontraron platillos en esta categoría</Text>
           </View>
         ) : (
@@ -119,8 +117,7 @@ export const DigitalMenu: React.FC = () => {
                   {/* Actions */}
                   {qty === 0 ? (
                     <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
-                      <Plus size={14} color="#0f172a" />
-                      <Text style={styles.addButtonText}>Agregar</Text>
+                      <Text style={styles.addButtonText}>＋ Agregar</Text>
                     </TouchableOpacity>
                   ) : (
                     <View style={styles.qtyContainer}>
@@ -128,14 +125,14 @@ export const DigitalMenu: React.FC = () => {
                         style={styles.qtyButton}
                         onPress={() => updateCartQuantity(item.id, -1)}
                       >
-                        <Minus size={14} color="#ffffff" />
+                        <Text style={styles.qtyButtonText}>−</Text>
                       </TouchableOpacity>
                       <Text style={styles.qtyText}>{qty}</Text>
                       <TouchableOpacity
                         style={styles.qtyButton}
                         onPress={() => updateCartQuantity(item.id, 1)}
                       >
-                        <Plus size={14} color="#ffffff" />
+                        <Text style={styles.qtyButtonText}>＋</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -164,6 +161,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 4,
     marginBottom: 10,
+  },
+  searchIcon: {
+    fontSize: 14,
   },
   searchInput: {
     flex: 1,
@@ -206,6 +206,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
+  },
+  emptyIcon: {
+    fontSize: 40,
+    opacity: 0.4,
   },
   emptyText: {
     color: '#64748b',
@@ -291,6 +295,15 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: '#1e293b',
     borderRadius: 6,
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyButtonText: {
+    color: '#ffffff',
+    fontWeight: '900',
+    fontSize: 16,
   },
   qtyText: {
     color: '#ffffff',

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView } from 'react-native';
-import { QrCode, Keypad, ArrowRight, Sparkles, Utensils } from 'lucide-react-native';
 
 interface TablePinModalProps {
   onConnect: (pin: string) => void;
@@ -20,16 +19,6 @@ export const TablePinModal: React.FC<TablePinModalProps> = ({
     onConnect(num.toString());
   };
 
-  const handleKeyPress = (val: string) => {
-    if (pinCode.length < 4) {
-      setPinCode((prev) => prev + val);
-    }
-  };
-
-  const handleDelete = () => {
-    setPinCode((prev) => prev.slice(0, -1));
-  };
-
   const handleSubmit = () => {
     if (pinCode.trim()) {
       onConnect(pinCode.trim());
@@ -41,7 +30,7 @@ export const TablePinModal: React.FC<TablePinModalProps> = ({
       {/* Header Badge */}
       <View style={styles.badgeContainer}>
         <View style={styles.iconCircle}>
-          <Utensils size={28} color="#f59e0b" />
+          <Text style={styles.iconEmoji}>🍽️</Text>
         </View>
         <Text style={styles.brandTitle}>
           Plate<Text style={styles.brandAccent}>OS</Text> Go
@@ -58,7 +47,7 @@ export const TablePinModal: React.FC<TablePinModalProps> = ({
 
         {/* QR Scanner Trigger Button */}
         <TouchableOpacity style={styles.qrButton} onPress={onOpenScanner} activeOpacity={0.8}>
-          <QrCode size={22} color="#0f172a" />
+          <Text style={styles.qrIcon}>📷</Text>
           <Text style={styles.qrButtonText}>ESCANEAR CÓDIGO QR</Text>
         </TouchableOpacity>
 
@@ -84,7 +73,7 @@ export const TablePinModal: React.FC<TablePinModalProps> = ({
             onPress={handleSubmit}
             disabled={!pinCode || isConnecting}
           >
-            <ArrowRight size={20} color="#0f172a" />
+            <Text style={styles.submitArrow}>{isConnecting ? '⏳' : '→'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -128,6 +117,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  iconEmoji: {
+    fontSize: 28,
   },
   brandTitle: {
     fontSize: 32,
@@ -180,6 +172,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
+  qrIcon: {
+    fontSize: 20,
+  },
   qrButtonText: {
     color: '#0f172a',
     fontWeight: '900',
@@ -229,6 +224,11 @@ const styles = StyleSheet.create({
   },
   submitButtonDisabled: {
     opacity: 0.4,
+  },
+  submitArrow: {
+    fontSize: 22,
+    color: '#0f172a',
+    fontWeight: '900',
   },
   quickLabel: {
     fontSize: 11,

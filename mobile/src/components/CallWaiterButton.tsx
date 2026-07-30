@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Bell, CheckCircle2 } from 'lucide-react-native';
 import { useClientStore } from '../store/useClientStore';
 
 export const CallWaiterButton: React.FC = () => {
@@ -17,7 +16,7 @@ export const CallWaiterButton: React.FC = () => {
       >
         {isCallWaiterActive ? (
           <>
-            <CheckCircle2 size={24} color="#ffffff" />
+            <Text style={styles.iconEmoji}>✅</Text>
             <View style={styles.textColumn}>
               <Text style={styles.buttonTitleActive}>¡Mozo Notificado!</Text>
               <Text style={styles.buttonSubActive}>
@@ -28,7 +27,7 @@ export const CallWaiterButton: React.FC = () => {
         ) : (
           <>
             <View style={styles.iconCircle}>
-              <Bell size={20} color="#f59e0b" />
+              <Text style={styles.iconEmoji}>🛎️</Text>
             </View>
             <View style={styles.textColumn}>
               <Text style={styles.buttonTitle}>🛎️ LLAMAR AL MESERO</Text>
@@ -76,6 +75,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  iconEmoji: {
+    fontSize: 20,
   },
   textColumn: {
     flex: 1,

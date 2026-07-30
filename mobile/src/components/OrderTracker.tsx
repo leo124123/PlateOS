@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from 'react-native';
-import { ShoppingBag, Send, CreditCard, CheckCircle2, Clock, ChefHat, Truck } from 'lucide-react-native';
 import { useClientStore } from '../store/useClientStore';
 
 export const OrderTracker: React.FC = () => {
@@ -34,21 +33,6 @@ export const OrderTracker: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const getStatusBadge = (status?: string) => {
-    switch (status) {
-      case 'PENDING':
-        return { label: 'Comanda Marchada', color: '#f59e0b', icon: Clock };
-      case 'IN_PREPARATION':
-        return { label: 'En Cocción por Chef', color: '#38bdf8', icon: ChefHat };
-      case 'READY_FOR_DELIVERY':
-        return { label: '¡Listo para Entregar!', color: '#10b981', icon: CheckCircle2 };
-      case 'SERVED':
-        return { label: 'Servido en Mesa', color: '#a855f7', icon: Truck };
-      default:
-        return { label: 'En Proceso', color: '#64748b', icon: Clock };
-    }
-  };
-
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       {/* ── SECTION 1: LIVE ACTIVE ORDER IN KITCHEN ── */}
@@ -74,7 +58,7 @@ export const OrderTracker: React.FC = () => {
                 <View key={st} style={styles.timelineStep}>
                   <View style={[styles.timelineDot, isActive && styles.timelineDotActive]} />
                   <Text style={[styles.timelineText, isActive && styles.timelineTextActive]}>
-                    {st === 'PENDING' ? 'Marchado' : st === 'IN_PREPARATION' ? 'Cocina' : st === 'READY_FOR_DELIVERY' ? '¡Listo!' : 'En Mesa'}
+                    {st === 'PENDING' ? '📝 Marchado' : st === 'IN_PREPARATION' ? '👨‍🍳 Cocina' : st === 'READY_FOR_DELIVERY' ? '✅ ¡Listo!' : '🍽️ En Mesa'}
                   </Text>
                 </View>
               );
@@ -103,7 +87,6 @@ export const OrderTracker: React.FC = () => {
             onPress={requestBill}
             disabled={connectedTable?.status === 'BILL_REQUESTED'}
           >
-            <CreditCard size={18} color={connectedTable?.status === 'BILL_REQUESTED' ? '#10b981' : '#0f172a'} />
             <Text style={[styles.billButtonText, connectedTable?.status === 'BILL_REQUESTED' && styles.billButtonTextDone]}>
               {connectedTable?.status === 'BILL_REQUESTED' ? '✓ CUENTA SOLICITADA A CAJA' : '💳 SOLICITAR LA CUENTA'}
             </Text>
@@ -114,7 +97,7 @@ export const OrderTracker: React.FC = () => {
       {/* ── SECTION 2: CART & CHECKOUT ── */}
       <View style={styles.cartCard}>
         <View style={styles.cartHeader}>
-          <ShoppingBag size={20} color="#f59e0b" />
+          <Text style={styles.cartIcon}>🛒</Text>
           <Text style={styles.cartTitle}>Comanda Actual en Mesa</Text>
         </View>
 
@@ -149,7 +132,7 @@ export const OrderTracker: React.FC = () => {
                     style={styles.qtyBtn}
                     onPress={() => updateCartQuantity(item.menuItem.id, -1)}
                   >
-                    <Text style={styles.qtyBtnText}>-</Text>
+                    <Text style={styles.qtyBtnText}>−</Text>
                   </TouchableOpacity>
                   <Text style={styles.qtyVal}>{item.quantity}</Text>
                   <TouchableOpacity
@@ -194,9 +177,8 @@ export const OrderTracker: React.FC = () => {
               onPress={handleSubmit}
               disabled={isSubmitting}
             >
-              <Send size={18} color="#0f172a" />
               <Text style={styles.submitBtnText}>
-                {isSubmitting ? 'ENVIANDO A COCINA...' : 'ENVIAR COMANDA A COCINA'}
+                {isSubmitting ? '⏳ ENVIANDO A COCINA...' : '📤 ENVIAR COMANDA A COCINA'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -252,10 +234,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 14,
-    paddingHorizontal: 10,
+    paddingHorizontal: 4,
   },
   timelineStep: {
     alignItems: 'center',
+    flex: 1,
   },
   timelineDot: {
     width: 12,
@@ -271,6 +254,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     color: '#64748b',
+    textAlign: 'center',
   },
   timelineTextActive: {
     color: '#10b981',
@@ -356,6 +340,9 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 14,
   },
+  cartIcon: {
+    fontSize: 20,
+  },
   cartTitle: {
     fontSize: 16,
     fontWeight: '900',
@@ -425,6 +412,7 @@ const styles = StyleSheet.create({
   qtyBtnText: {
     color: '#ffffff',
     fontWeight: '900',
+    fontSize: 16,
   },
   qtyVal: {
     color: '#ffffff',

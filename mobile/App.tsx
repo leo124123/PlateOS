@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,7 +7,6 @@ import {
   StatusBar,
   TouchableOpacity,
 } from 'react-native';
-import { Utensils, ShoppingBag, Bell } from 'lucide-react-native';
 import { useClientStore } from './src/store/useClientStore';
 import { TablePinModal } from './src/components/TablePinModal';
 import { QRCameraScanner } from './src/components/QRCameraScanner';
@@ -53,24 +52,19 @@ export default function App() {
         </View>
       ) : (
         <View style={styles.flexOne}>
-          {/* Top Header */}
           <CustomerHeader table={connectedTable} onDisconnect={disconnectTable} />
-
-          {/* Call Waiter Button */}
           <CallWaiterButton />
-
-          {/* Tab Views */}
           <View style={styles.contentArea}>
             {activeTab === 'menu' ? <DigitalMenu /> : <OrderTracker />}
           </View>
 
-          {/* Bottom Floating Navigation Bar */}
+          {/* Bottom Navigation */}
           <View style={styles.bottomNav}>
             <TouchableOpacity
               style={[styles.navBtn, activeTab === 'menu' && styles.navBtnActive]}
               onPress={() => setActiveTab('menu')}
             >
-              <Utensils size={20} color={activeTab === 'menu' ? '#f59e0b' : '#64748b'} />
+              <Text style={styles.navIcon}>🍽️</Text>
               <Text
                 style={[
                   styles.navBtnText,
@@ -86,10 +80,7 @@ export default function App() {
               onPress={() => setActiveTab('order')}
             >
               <View style={styles.iconBadgeWrapper}>
-                <ShoppingBag
-                  size={20}
-                  color={activeTab === 'order' ? '#f59e0b' : '#64748b'}
-                />
+                <Text style={styles.navIcon}>🛒</Text>
                 {cartTotalItems > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{cartTotalItems}</Text>
@@ -131,10 +122,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     justifyContent: 'space-around',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   navBtn: {
     alignItems: 'center',
@@ -144,6 +131,9 @@ const styles = StyleSheet.create({
   },
   navBtnActive: {
     backgroundColor: 'rgba(245, 158, 11, 0.1)',
+  },
+  navIcon: {
+    fontSize: 20,
   },
   navBtnText: {
     fontSize: 11,
