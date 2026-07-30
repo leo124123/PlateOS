@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,11 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useClientStore } from '../store/useClientStore';
 import { getSocket } from '../services/socket';
+import api from '../services/api';
 import { PremiumIcon, IconName } from './common/PremiumIcon';
 
 interface AspectTag {
@@ -17,6 +19,22 @@ interface AspectTag {
   icon: IconName;
   iconColor: string;
 }
+
+interface WaiterOption {
+  id: string;
+  name: string;
+  role: string;
+  email?: string;
+  tagline?: string;
+}
+
+const DEFAULT_WAITERS: WaiterOption[] = [
+  { id: 'w-1', name: 'Carlos Mendoza', role: 'Mesero Senior', tagline: 'Especialista en Vinos' },
+  { id: 'w-2', name: 'Leonardo Luis', role: 'Mesero Principal', tagline: 'Atención VIP' },
+  { id: 'w-3', name: 'Ana Gutiérrez', role: 'Capitana de Mesas', tagline: 'Servicio Gourmet' },
+  { id: 'w-4', name: 'Mateo Rossi', role: 'Sommelier & Mesero', tagline: 'Maridaje de Autor' },
+  { id: 'w-5', name: 'Sofía Valenzuela', role: 'Mesera de Terraza', tagline: 'Atención Personalizada' },
+];
 
 const ASPECT_TAGS: AspectTag[] = [
   { id: 'rapido', label: 'Servicio Rápido', icon: 'zap', iconColor: '#10b981' },
@@ -29,6 +47,10 @@ const ASPECT_TAGS: AspectTag[] = [
 export const WaiterReviewScreen: React.FC = () => {
   const { connectedTable } = useClientStore();
 
+  const [waiters, setWaiters] = useState<WaiterOption[]>(DEFAULT_WAITERS);
+  const [selectedWaiter, setSelectedWaiter] = useState<WaiterOption>(DEFAULT_WAITERS[0]);
+  const [loadingWaiters, setLoadingWaiters] = useState(false);
+
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState('');
   const [selectedTip, setSelectedTip] = useState<string>('15%');
@@ -37,6 +59,30 @@ export const WaiterReviewScreen: React.FC = () => {
     amable: true,
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    const fetchWaitersList = async () => {
+      setLoadingWaiters(true);
+      try {
+        const res = await api.get('/auth/waiters');
+        if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          const formatted = res.data.data.map((w: any, index: number) => ({
+            id: w.id || `w-${index}`,
+            name: w.name,
+            role: w.role === 'ADMIN' ? 'Gerente de Servicio' : 'Mesero Profesional',
+            tagline: 'Atención Gourmet',
+          }));
+          setWaiters(formatted);
+          setSelectedWaiter(formatted[0]);
+        }
+      } catch (e) {
+        console.log('[PlateOS Review] Usando meseros predeterminados');
+      } finally {
+        setLoadingWaiters(false);
+      }
+    };
+    fetchWaitersList();
+  }, []);
 
   const toggleTag = (tagId: string) => {
     setSelectedTags((prev) => ({ ...prev, [tagId]: !prev[tagId] }));
@@ -51,6 +97,8 @@ export const WaiterReviewScreen: React.FC = () => {
     socket.emit('waiter:review_submitted', {
       tableNumber: connectedTable.number,
       tableId: connectedTable.id,
+      waiterId: selectedWaiter.id,
+      waiterName: selectedWaiter.name,
       rating,
       comment,
       tags: activeTags,
@@ -67,9 +115,9 @@ export const WaiterReviewScreen: React.FC = () => {
           <View style={styles.successIconCircle}>
             <PremiumIcon name="award" size={42} color="#d4af37" />
           </View>
-          <Text style={styles.successTitle}>¡Reseña Enviada con Éxito!</Text>
+          <Text style={styles.successTitle}>¡Reseña Enviada a {selectedWaiter.name}!</Text>
           <Text style={styles.successSub}>
-            Agradecemos tu valoración. Tu opinión permite a nuestro equipo mantener los estándares gourmet de la Mesa #{connectedTable?.number}.
+            Agradecemos tu valoración para {selectedWaiter.name}. Tu opinión permite a nuestro equipo mantener los estándares gourmet de la Mesa #{connectedTable?.number}.
           </Text>
           <TouchableOpacity
             style={styles.newReviewBtn}
@@ -94,28 +142,75 @@ export const WaiterReviewScreen: React.FC = () => {
         </View>
         <Text style={styles.headerTitle}>Valoración del Servicio</Text>
         <Text style={styles.headerSub}>
-          Califica la atención brindada en la Mesa #{connectedTable?.number || 1} para reconocer a tu mesero.
+          Selecciona a tu camarero/mesero y califica la atención brindada en la Mesa #{connectedTable?.number || 1}.
         </Text>
       </View>
 
-      {/* Waiter Profile Card */}
+      {/* Waiter Selection Section */}
+      <View style={styles.waiterSelectorCard}>
+        <View style={styles.sectionHeaderRow}>
+          <PremiumIcon name="user" size={14} color="#d4af37" />
+          <Text style={styles.sectionLabel}>SELECCIONA A TU CAMARERO / MESERO</Text>
+        </View>
+
+        {loadingWaiters ? (
+          <ActivityIndicator color="#d4af37" size="small" style={{ marginVertical: 12 }} />
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.waitersScrollRow}
+          >
+            {waiters.map((waiter) => {
+              const isSelected = selectedWaiter.id === waiter.id;
+              return (
+                <TouchableOpacity
+                  key={waiter.id}
+                  style={[styles.waiterChip, isSelected && styles.waiterChipActive]}
+                  onPress={() => setSelectedWaiter(waiter)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.waiterChipAvatar, isSelected && styles.waiterChipAvatarActive]}>
+                    <PremiumIcon name="chef" size={18} color={isSelected ? '#090a0f' : '#d4af37'} />
+                  </View>
+                  <View style={styles.waiterChipInfo}>
+                    <Text style={[styles.waiterChipName, isSelected && styles.waiterChipNameActive]}>
+                      {waiter.name}
+                    </Text>
+                    <Text style={styles.waiterChipRole}>{waiter.role}</Text>
+                  </View>
+                  {isSelected && (
+                    <View style={styles.selectedBadgeCheck}>
+                      <PremiumIcon name="check" size={12} color="#090a0f" strokeWidth={3} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+      </View>
+
+      {/* Selected Waiter Profile Card */}
       <View style={styles.waiterCard}>
         <View style={styles.waiterAvatarCircle}>
           <PremiumIcon name="chef" size={26} color="#d4af37" />
         </View>
         <View style={styles.waiterInfo}>
-          <Text style={styles.waiterName}>Carlos Mendoza</Text>
-          <Text style={styles.waiterRole}>Mesero Senior • Mesa #{connectedTable?.number || 1}</Text>
+          <Text style={styles.waiterName}>{selectedWaiter.name}</Text>
+          <Text style={styles.waiterRole}>
+            {selectedWaiter.role} • Mesa #{connectedTable?.number || 1}
+          </Text>
         </View>
         <View style={styles.onlineBadge}>
           <View style={styles.onlineDot} />
-          <Text style={styles.onlineText}>EN MESA</Text>
+          <Text style={styles.onlineText}>ASIGNADO</Text>
         </View>
       </View>
 
       {/* Interactive Star Rating */}
       <View style={styles.ratingCard}>
-        <Text style={styles.sectionLabel}>¿CÓMO FUE TU EXPERIENCIA?</Text>
+        <Text style={styles.sectionLabel}>¿CÓMO FUE LA ATENCIÓN DE {selectedWaiter.name.toUpperCase()}?</Text>
         <View style={styles.starsRow}>
           {[1, 2, 3, 4, 5].map((star) => {
             const isActive = star <= rating;
@@ -176,7 +271,7 @@ export const WaiterReviewScreen: React.FC = () => {
 
       {/* Tip Selector */}
       <View style={styles.tipCard}>
-        <Text style={styles.sectionLabel}>RECONOCIMIENTO AL MESERO (PROPINA)</Text>
+        <Text style={styles.sectionLabel}>RECONOCIMIENTO A {selectedWaiter.name.toUpperCase()} (PROPINA)</Text>
         <View style={styles.tipRow}>
           {['10%', '15%', '20%', 'Sin Propina'].map((tip) => {
             const isSelected = selectedTip === tip;
@@ -201,7 +296,7 @@ export const WaiterReviewScreen: React.FC = () => {
         <Text style={styles.sectionLabel}>COMENTARIO O DETALLE ADICIONAL</Text>
         <TextInput
           style={styles.commentInput}
-          placeholder="Escribe aquí tu opinión sobre el trato o la experiencia..."
+          placeholder={`Escribe aquí tu opinión sobre el trato de ${selectedWaiter.name}...`}
           placeholderTextColor="#64748b"
           value={comment}
           onChangeText={setComment}
@@ -216,7 +311,7 @@ export const WaiterReviewScreen: React.FC = () => {
         activeOpacity={0.85}
       >
         <PremiumIcon name="award" size={16} color="#090a0f" />
-        <Text style={styles.submitBtnText}>ENVIAR VALORACIÓN AL MESERO</Text>
+        <Text style={styles.submitBtnText}>ENVIAR RESEÑA A {selectedWaiter.name.toUpperCase()}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -256,6 +351,77 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 4,
   },
+
+  /* Waiter Selector */
+  waiterSelectorCard: {
+    backgroundColor: '#0f111a',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
+    padding: 16,
+  },
+  waitersScrollRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingVertical: 4,
+  },
+  waiterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 10,
+    minWidth: 160,
+  },
+  waiterChipActive: {
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderColor: '#d4af37',
+  },
+  waiterChipAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderWidth: 1,
+    borderColor: '#d4af37',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  waiterChipAvatarActive: {
+    backgroundColor: '#d4af37',
+  },
+  waiterChipInfo: {
+    flex: 1,
+  },
+  waiterChipName: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  waiterChipNameActive: {
+    color: '#d4af37',
+    fontWeight: '900',
+  },
+  waiterChipRole: {
+    color: '#64748b',
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  selectedBadgeCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#d4af37',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  /* Active Waiter Display */
   waiterCard: {
     backgroundColor: '#0f111a',
     borderRadius: 20,
@@ -320,6 +486,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(212, 175, 55, 0.15)',
     padding: 16,
     alignItems: 'center',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
   },
   sectionLabel: {
     color: '#cbd5e1',

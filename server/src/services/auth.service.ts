@@ -11,7 +11,6 @@ export class AuthService {
     try {
       user = await prisma.user.findUnique({ where: { email } });
     } catch (err) {
-      // Mock fallback for demo
       if (email === 'admin@plateos.com' || email === 'mesero@plateos.com') {
         user = {
           id: 'user-demo-1',
@@ -63,7 +62,6 @@ export class AuthService {
     }
 
     if (!user) {
-      // Mock fallbacks for standard PINs
       if (pinCode === '1234' || pinCode === '5678' || pinCode === '9999' || pinCode === '4321') {
         const rolesMap: Record<string, string> = { '1234': 'ADMIN', '5678': 'WAITER', '9999': 'KITCHEN', '4321': 'CASHIER' };
         user = {
@@ -96,5 +94,24 @@ export class AuthService {
         avatarUrl: user.avatarUrl,
       },
     };
+  }
+
+  static async getWaiters() {
+    try {
+      const waiters = await prisma.user.findMany({
+        where: { role: 'WAITER', isActive: true },
+        select: { id: true, name: true, email: true, avatarUrl: true, role: true },
+      });
+      if (waiters.length > 0) return waiters;
+    } catch (e) {
+      // Fallback below
+    }
+    return [
+      { id: 'w-1', name: 'Carlos Mendoza', role: 'WAITER', email: 'mesero@plateos.com', avatarUrl: null },
+      { id: 'w-2', name: 'Leonardo Luis', role: 'WAITER', email: 'mesero2@plateos.com', avatarUrl: null },
+      { id: 'w-3', name: 'Ana Gutiérrez', role: 'WAITER', email: 'ana@plateos.com', avatarUrl: null },
+      { id: 'w-4', name: 'Mateo Rossi', role: 'WAITER', email: 'mateo@plateos.com', avatarUrl: null },
+      { id: 'w-5', name: 'Sofía Valenzuela', role: 'WAITER', email: 'sofia@plateos.com', avatarUrl: null },
+    ];
   }
 }

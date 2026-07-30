@@ -18,3 +18,8 @@ export const loginWithPin = asyncWrap(async (req: Request, res: Response) => {
 export const getMe = asyncWrap(async (req: any, res: Response) => {
   return sendSuccess(res, req.user || null, 'Perfil de usuario obtenido');
 });
+
+export const getWaiters = asyncWrap(async (_req: Request, res: Response) => {
+  const waiters = await AuthService.getWaiters();
+  return sendSuccess(res, waiters, 'Lista de meseros obtenida');
+});
