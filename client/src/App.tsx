@@ -10,7 +10,7 @@ import {
   Wifi,
   WifiOff,
   Layers,
-  Truck
+  Calendar,
 } from 'lucide-react';
 import { RestaurantFloor3D } from './components/3d/RestaurantFloor3D';
 import { KDSBoard } from './components/kitchen/KDSBoard';
@@ -18,6 +18,7 @@ import { OrderModal } from './components/orders/OrderModal';
 import { PaymentModal } from './components/payment/PaymentModal';
 import { GamificationBoard } from './components/goals/GamificationBoard';
 import { CashierBoard } from './components/cashier/CashierBoard';
+import { ReservationsView } from './components/reservations/ReservationsView';
 import { LoginModal } from './components/auth/LoginModal';
 import { MandatoryLoginPortal } from './components/auth/MandatoryLoginPortal';
 import { POSBottomToolbar } from './components/pos/POSBottomToolbar';
@@ -33,7 +34,7 @@ import { TableItem, Role } from './types';
 import api from './services/api';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'3d' | 'kitchen' | 'payments' | 'goals'>('3d');
+  const [activeTab, setActiveTab] = useState<'3d' | 'kitchen' | 'payments' | 'goals' | 'reservations'>('3d');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAppLocked, setIsAppLocked] = useState(true);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -160,6 +161,16 @@ export const App: React.FC = () => {
             <Receipt className="w-4 h-4" /> Cobros / Caja
           </button>
           <button
+            onClick={() => setActiveTab('reservations')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'reservations'
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Calendar className="w-4 h-4" /> Reservas VIP
+          </button>
+          <button
             onClick={() => setActiveTab('goals')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
               activeTab === 'goals'
@@ -260,29 +271,21 @@ export const App: React.FC = () => {
                   if (!alertNotification) return;
                   try {
                     await api.patch(`/orders/${alertNotification.orderId}/status`, { status: 'SERVED' });
-                    try {
-                      const raw = localStorage.getItem('plateos_active_timers');
-                      if (raw) {
-                        const timers = JSON.parse(raw);
-                        delete timers[alertNotification.orderId];
-                        localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
-                      }
-                    } catch (err) {}
-                    await fetchTables();
                     setAlertNotification(null);
+                    fetchTables();
                   } catch (err) {
-                    console.error('Error entregando pedido', err);
+                    console.error('Error actualizando pedido a SERVED:', err);
                   }
                 }}
-                className="px-3.5 py-1.5 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border border-emerald-400/40 hover:scale-105 transition-all"
+                className="px-3 py-1 bg-slate-950 text-emerald-300 rounded-lg text-xs font-black"
               >
-                <Truck className="w-4 h-4" /> 🚚 Llevar Pedido
+                Marcar Entregado
               </button>
               <button
                 onClick={() => setAlertNotification(null)}
-                className="px-3 py-1.5 bg-slate-950/80 text-white rounded-xl text-[10px] uppercase font-bold hover:bg-slate-950"
+                className="px-2 py-1 text-slate-900 font-bold text-xs"
               >
-                Entendido
+                Descartar
               </button>
             </div>
           </div>
@@ -305,6 +308,8 @@ export const App: React.FC = () => {
             onOpenSplitModal={(table) => { setSelectedTable(table); setIsSplitModalOpen(true); }}
           />
         )}
+
+        {activeTab === 'reservations' && <ReservationsView />}
 
         {activeTab === 'goals' && <GamificationBoard />}
       </main>
@@ -348,10 +353,6 @@ export const App: React.FC = () => {
           currentTable={selectedTable}
           tables={tables}
           onClose={() => setIsTransferModalOpen(false)}
-          onConfirmTransfer={() => {
-            fetchTables();
-            setIsTransferModalOpen(false);
-          }}
         />
       )}
 
@@ -385,5 +386,3 @@ export const App: React.FC = () => {
     </div>
   );
 };
-
-export default App;

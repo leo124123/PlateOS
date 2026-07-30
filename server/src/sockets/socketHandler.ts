@@ -19,7 +19,6 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
 
     if (!token) {
-      // In development mode, allow anonymous sockets with fallback role
       socket.user = { id: 'anonymous', email: 'guest@plateos.com', name: 'Invitado', role: 'WAITER' };
       return next();
     }
@@ -72,27 +71,39 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       io.emit('order:status_changed', { orderId: payload.orderId, status: 'SERVED' });
     });
 
-    // 3. Status change update
+    // 4. Status change update
     socket.on('table:change_status', (data: { tableId: string; status: string; currentOrderId?: string }) => {
       io.emit('table:status_changed', data);
     });
 
-    // 4. Customer calling waiter alert animation trigger
+    // 5. Customer calling waiter alert animation trigger
     socket.on('customer:call_waiter', (data: { tableNumber: number; tableId: string }) => {
       logger.info(`🕺 Mesa ${data.tableNumber} solicitando atención del mesero.`);
       io.emit('waiter:customer_calling', data);
     });
 
-    // 5. Waiter attending table notification trigger
+    // 6. Waiter attending table notification trigger
     socket.on('waiter:attending_table', (data: { tableNumber: number; tableId: string }) => {
       logger.info(`🏃 Mesero en camino a atender Mesa ${data.tableNumber}`);
       io.emit('waiter:attending_table', data);
     });
 
-    // 6. Waiter rating & service review trigger
+    // 7. Waiter rating & service review trigger
     socket.on('waiter:review_submitted', (data: { tableNumber: number; rating: number; comment?: string; tags?: string[] }) => {
       logger.info(`⭐ Reseña recibida de Mesa ${data.tableNumber}: ${data.rating}/5 estrellas. Comentario: ${data.comment || 'Sin comentario'}`);
       io.emit('waiter:review_received', data);
+    });
+
+    // 8. VIP Reservation created from Mobile App -> Notify Admin & Reception in Web App
+    socket.on('reservation:create', (reservationData: any) => {
+      logger.info(`📅 NUEVA RESERVA VIP recibida de Mesa #${reservationData.tableNumber} para ${reservationData.guests} personas a las ${reservationData.time} hs`);
+      io.emit('reservation:new', reservationData);
+    });
+
+    // 9. Admin/Reception responds to VIP Reservation from Web App -> Notify Mobile App
+    socket.on('reservation:respond', (payload: { reservationId: string; tableNumber: number; status: string; adminMessage?: string }) => {
+      logger.info(`📢 Respuesta a Reserva VIP enviado a Mesa #${payload.tableNumber}: Estado ${payload.status}. Mensaje: "${payload.adminMessage || ''}"`);
+      io.emit('reservation:status_updated', payload);
     });
 
     socket.on('disconnect', () => {
