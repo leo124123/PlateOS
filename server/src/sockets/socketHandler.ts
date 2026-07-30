@@ -89,6 +89,12 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       io.emit('waiter:attending_table', data);
     });
 
+    // 6. Waiter rating & service review trigger
+    socket.on('waiter:review_submitted', (data: { tableNumber: number; rating: number; comment?: string; tags?: string[] }) => {
+      logger.info(`⭐ Reseña recibida de Mesa ${data.tableNumber}: ${data.rating}/5 estrellas. Comentario: ${data.comment || 'Sin comentario'}`);
+      io.emit('waiter:review_received', data);
+    });
+
     socket.on('disconnect', () => {
       logger.info(`❌ Cliente WebSocket desconectado: ${socket.id}`);
     });

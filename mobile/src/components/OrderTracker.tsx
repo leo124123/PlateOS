@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useClientStore } from '../store/useClientStore';
+import { PremiumIcon } from './common/PremiumIcon';
 
 export const OrderTracker: React.FC = () => {
   const { activeOrder, connectedTable, requestBill } = useClientStore();
@@ -28,17 +29,30 @@ export const OrderTracker: React.FC = () => {
               );
               const isActive = idx <= currentIdx;
 
+              let iconName: 'clock' | 'chef' | 'check' | 'utensils' = 'clock';
+              let label = 'Marchado';
+              if (st === 'IN_PREPARATION') {
+                iconName = 'chef';
+                label = 'Cocina';
+              } else if (st === 'READY_FOR_DELIVERY') {
+                iconName = 'check';
+                label = '¡Listo!';
+              } else if (st === 'SERVED') {
+                iconName = 'utensils' as any;
+                label = 'En Mesa';
+              }
+
               return (
                 <View key={st} style={styles.timelineStep}>
-                  <View style={[styles.timelineDot, isActive && styles.timelineDotActive]} />
+                  <View style={[styles.timelineDot, isActive && styles.timelineDotActive]}>
+                    <PremiumIcon
+                      name={isActive ? 'check' : 'clock'}
+                      size={10}
+                      color={isActive ? '#090a0f' : '#64748b'}
+                    />
+                  </View>
                   <Text style={[styles.timelineText, isActive && styles.timelineTextActive]}>
-                    {st === 'PENDING'
-                      ? '📝 Marchado'
-                      : st === 'IN_PREPARATION'
-                      ? '👨‍🍳 Cocina'
-                      : st === 'READY_FOR_DELIVERY'
-                      ? '✅ ¡Listo!'
-                      : '🍽️ En Mesa'}
+                    {label}
                   </Text>
                 </View>
               );
@@ -73,6 +87,11 @@ export const OrderTracker: React.FC = () => {
             disabled={connectedTable?.status === 'BILL_REQUESTED'}
             activeOpacity={0.8}
           >
+            <PremiumIcon
+              name={connectedTable?.status === 'BILL_REQUESTED' ? 'check' : 'credit-card'}
+              size={16}
+              color={connectedTable?.status === 'BILL_REQUESTED' ? '#10b981' : '#090a0f'}
+            />
             <Text
               style={[
                 styles.billButtonText,
@@ -80,8 +99,8 @@ export const OrderTracker: React.FC = () => {
               ]}
             >
               {connectedTable?.status === 'BILL_REQUESTED'
-                ? '✓ CUENTA SOLICITADA A CAJA'
-                : '💳 SOLICITAR LA CUENTA'}
+                ? 'CUENTA SOLICITADA A CAJA'
+                : 'SOLICITAR LA CUENTA'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -89,10 +108,12 @@ export const OrderTracker: React.FC = () => {
         /* ── SECTION 2: NO ACTIVE ORDER / TABLE STATUS ── */
         <View style={styles.statusCard}>
           <View style={styles.statusCardHeader}>
-            <Text style={styles.statusEmoji}>📋</Text>
+            <View style={styles.statusIconCircle}>
+              <PremiumIcon name="user" size={32} color="#d4af37" />
+            </View>
             <Text style={styles.statusTitle}>Mesa #{connectedTable?.number} Conectada</Text>
             <Text style={styles.statusSub}>
-              Consulta nuestro menú digital en la pestaña anterior. Las comandas son tomadas directamente por el mesero en tu mesa.
+              Consulta nuestra Carta Digital en la pestaña Menú. Las comandas activas y el avance de cocina aparecerán automáticamente en esta sección.
             </Text>
           </View>
 
@@ -105,6 +126,11 @@ export const OrderTracker: React.FC = () => {
             disabled={connectedTable?.status === 'BILL_REQUESTED'}
             activeOpacity={0.8}
           >
+            <PremiumIcon
+              name={connectedTable?.status === 'BILL_REQUESTED' ? 'check' : 'credit-card'}
+              size={16}
+              color={connectedTable?.status === 'BILL_REQUESTED' ? '#10b981' : '#090a0f'}
+            />
             <Text
               style={[
                 styles.billButtonText,
@@ -112,8 +138,8 @@ export const OrderTracker: React.FC = () => {
               ]}
             >
               {connectedTable?.status === 'BILL_REQUESTED'
-                ? '✓ CUENTA SOLICITADA A CAJA'
-                : '💳 SOLICITAR LA CUENTA'}
+                ? 'CUENTA SOLICITADA A CAJA'
+                : 'SOLICITAR LA CUENTA'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -125,20 +151,16 @@ export const OrderTracker: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingTop: 14,
+    paddingBottom: 130,
     gap: 16,
   },
   activeOrderCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 26,
+    backgroundColor: '#0f111a',
+    borderRadius: 24,
     borderWidth: 1.5,
-    borderColor: '#38bdf8',
+    borderColor: '#d4af37',
     padding: 20,
-    shadowColor: '#38bdf8',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 6,
   },
   activeOrderHeader: {
     flexDirection: 'row',
@@ -153,20 +175,20 @@ const styles = StyleSheet.create({
   },
   activeOrderSub: {
     fontSize: 12,
-    color: '#38bdf8',
+    color: '#d4af37',
     fontWeight: '800',
     marginTop: 2,
   },
   statusPill: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
+    borderColor: 'rgba(212, 175, 55, 0.3)',
   },
   statusPillText: {
-    color: '#38bdf8',
+    color: '#d4af37',
     fontSize: 10,
     fontWeight: '900',
   },
@@ -181,14 +203,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#334155',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#1e293b',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 6,
   },
   timelineDotActive: {
-    backgroundColor: '#10b981',
+    backgroundColor: '#d4af37',
   },
   timelineText: {
     fontSize: 9,
@@ -197,16 +221,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   timelineTextActive: {
-    color: '#10b981',
+    color: '#d4af37',
+    fontWeight: '900',
   },
   itemsList: {
-    backgroundColor: '#020617',
+    backgroundColor: '#090a0f',
     borderRadius: 18,
     padding: 14,
     gap: 8,
     marginVertical: 10,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   activeItemRow: {
     flexDirection: 'row',
@@ -214,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeItemQty: {
-    color: '#f59e0b',
+    color: '#d4af37',
     fontWeight: '900',
     fontSize: 12,
     width: 24,
@@ -247,7 +272,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   billButton: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#d4af37',
     borderRadius: 16,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -262,32 +287,41 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   billButtonText: {
-    color: '#0f172a',
-    fontSize: 13,
+    color: '#090a0f',
+    fontSize: 12,
     fontWeight: '900',
+    letterSpacing: 1,
   },
   billButtonTextDone: {
     color: '#10b981',
   },
   statusCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 26,
-    borderWidth: 1.5,
-    borderColor: '#1e293b',
+    backgroundColor: '#0f111a',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
     padding: 24,
     gap: 16,
   },
   statusCardHeader: {
     alignItems: 'center',
   },
-  statusEmoji: {
-    fontSize: 40,
+  statusIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
   },
   statusTitle: {
     fontSize: 18,
     fontWeight: '900',
     color: '#ffffff',
-    marginTop: 10,
+    marginTop: 6,
   },
   statusSub: {
     fontSize: 12,

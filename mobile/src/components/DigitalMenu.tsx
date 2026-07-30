@@ -13,6 +13,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useClientStore } from '../store/useClientStore';
+import { PremiumIcon, IconName } from './common/PremiumIcon';
 
 const { width } = Dimensions.get('window');
 const SLIDE_WIDTH = width - 40;
@@ -90,7 +91,6 @@ const RECOMMENDED_ITEMS = [
     description: 'Parmentier de papa trufada, ajíes asados y oliva negra.',
     price: 1450,
     image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80',
-    favorite: true,
   },
   {
     id: 'rec-2',
@@ -98,7 +98,6 @@ const RECOMMENDED_ITEMS = [
     description: 'Costra de hierbas, puré de coliflor y reducción de vino tinto.',
     price: 1850,
     image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
-    favorite: true,
   },
   {
     id: 'rec-3',
@@ -106,19 +105,22 @@ const RECOMMENDED_ITEMS = [
     description: 'Salsa cremosa de parmesano y trufa negra fresca.',
     price: 1250,
     image: 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=600&q=80',
-    favorite: false,
   },
 ];
 
-const CATEGORY_ICONS: Record<string, string> = {
-  ENTRADAS: '🍱',
-  'PLATOS FUERTES': '🥩',
-  POSTRES: '🍰',
-  BEBIDAS: '🍸',
-  'CHEF ESPECIALES': '👨‍🍳',
+const CATEGORY_ICONS: Record<string, IconName> = {
+  ENTRADAS: 'menu',
+  'PLATOS FUERTES': 'chef',
+  POSTRES: 'sparkles',
+  BEBIDAS: 'wine',
+  'CHEF ESPECIALES': 'award',
 };
 
-export const DigitalMenu: React.FC = () => {
+interface DigitalMenuProps {
+  activeTab?: string;
+}
+
+export const DigitalMenu: React.FC<DigitalMenuProps> = ({ activeTab = 'inicio' }) => {
   const { categories, connectedTable } = useClientStore();
   const [selectedCatId, setSelectedCatId] = useState<string>(categories[0]?.id || '');
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,7 +168,7 @@ export const DigitalMenu: React.FC = () => {
     ) || [];
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 130 }}>
       {/* ── 1. INTERACTIVE PARALLAX HERO CAROUSEL ── */}
       <View style={styles.heroWrapper}>
         <ScrollView
@@ -184,7 +186,7 @@ export const DigitalMenu: React.FC = () => {
               <ImageBackground
                 source={{ uri: slide.image }}
                 style={styles.heroBg}
-                imageStyle={{ borderRadius: 28 }}
+                imageStyle={{ borderRadius: 24 }}
               >
                 <View style={styles.heroGradient}>
                   <Text style={styles.heroTagline}>{slide.tagline}</Text>
@@ -196,7 +198,7 @@ export const DigitalMenu: React.FC = () => {
                       MESA #{connectedTable?.number || 1}
                     </Text>
                     <View style={styles.heroCtaIconCircle}>
-                      <Text style={styles.heroCtaArrow}>❯</Text>
+                      <PremiumIcon name="arrow-right" size={12} color="#090a0f" />
                     </View>
                   </TouchableOpacity>
                 </View>
@@ -225,7 +227,7 @@ export const DigitalMenu: React.FC = () => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categorySlider}>
           {categories.map((cat) => {
             const isActive = selectedCatId === cat.id;
-            const iconEmoji = CATEGORY_ICONS[cat.name.toUpperCase()] || '🍽️';
+            const iconName = CATEGORY_ICONS[cat.name.toUpperCase()] || 'menu';
 
             return (
               <TouchableOpacity
@@ -235,7 +237,11 @@ export const DigitalMenu: React.FC = () => {
                 activeOpacity={0.8}
               >
                 <View style={[styles.categoryCircle, isActive && styles.categoryCircleActive]}>
-                  <Text style={styles.categoryEmoji}>{iconEmoji}</Text>
+                  <PremiumIcon
+                    name={iconName}
+                    size={20}
+                    color={isActive ? '#090a0f' : '#d4af37'}
+                  />
                 </View>
                 <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
                   {cat.name.toUpperCase()}
@@ -247,60 +253,68 @@ export const DigitalMenu: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* ── 3. RECOMENDADOS PARA TI CAROUSEL ── */}
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitleSerif}>Recomendados para ti</Text>
-        <TouchableOpacity style={styles.seeAllBtn} activeOpacity={0.7}>
-          <Text style={styles.seeAllText}>Ver todo</Text>
-          <Text style={styles.seeAllArrow}>❯</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recommendedSlider}>
-        {RECOMMENDED_ITEMS.map((item) => {
-          const isFav = favorites[item.id];
-          return (
-            <View key={item.id} style={styles.recommendedCard}>
-              <Image source={{ uri: item.image }} style={styles.recommendedImage} />
-              <TouchableOpacity
-                style={styles.favBtn}
-                onPress={() => toggleFavorite(item.id)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.favHeart}>{isFav ? '❤️' : '🤍'}</Text>
-              </TouchableOpacity>
-
-              <View style={styles.recommendedCardBody}>
-                <Text style={styles.recommendedTitle}>{item.name}</Text>
-                <Text style={styles.recommendedSub} numberOfLines={2}>
-                  {item.description}
-                </Text>
-                <Text style={styles.recommendedPrice}>RD${item.price.toLocaleString()}</Text>
-              </View>
-            </View>
-          );
-        })}
-      </ScrollView>
-
-      {/* ── 4. MENÚ DEGUSTACIÓN BANNER ── */}
-      <View style={styles.degustacionWrapper}>
-        <View style={styles.degustacionCard}>
-          <Image source={{ uri: DEGUSTACION_IMAGE }} style={styles.degustacionImg} />
-          <View style={styles.degustacionContent}>
-            <Text style={styles.degustacionTag}>MENÚ DEGUSTACIÓN</Text>
-            <Text style={styles.degustacionTitle}>7 tiempos, una experiencia para los sentidos.</Text>
-            <Text style={styles.degustacionPrice}>RD$2,950</Text>
+      {/* ── 3. RECOMENDADOS PARA TI CAROUSEL (IF INICIO) ── */}
+      {activeTab === 'inicio' && (
+        <>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitleSerif}>Recomendados para ti</Text>
+            <TouchableOpacity style={styles.seeAllBtn} activeOpacity={0.7}>
+              <Text style={styles.seeAllText}>Ver todo</Text>
+              <PremiumIcon name="arrow-right" size={12} color="#d4af37" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.degustacionArrowBtn} activeOpacity={0.8}>
-            <Text style={styles.degustacionArrow}>❯</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recommendedSlider}>
+            {RECOMMENDED_ITEMS.map((item) => {
+              const isFav = favorites[item.id];
+              return (
+                <View key={item.id} style={styles.recommendedCard}>
+                  <Image source={{ uri: item.image }} style={styles.recommendedImage} />
+                  <TouchableOpacity
+                    style={styles.favBtn}
+                    onPress={() => toggleFavorite(item.id)}
+                    activeOpacity={0.8}
+                  >
+                    <PremiumIcon
+                      name="heart"
+                      size={14}
+                      color={isFav ? '#e11d48' : '#ffffff'}
+                    />
+                  </TouchableOpacity>
+
+                  <View style={styles.recommendedCardBody}>
+                    <Text style={styles.recommendedTitle}>{item.name}</Text>
+                    <Text style={styles.recommendedSub} numberOfLines={2}>
+                      {item.description}
+                    </Text>
+                    <Text style={styles.recommendedPrice}>RD${item.price.toLocaleString()}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          {/* ── 4. MENÚ DEGUSTACIÓN BANNER ── */}
+          <View style={styles.degustacionWrapper}>
+            <View style={styles.degustacionCard}>
+              <Image source={{ uri: DEGUSTACION_IMAGE }} style={styles.degustacionImg} />
+              <View style={styles.degustacionContent}>
+                <Text style={styles.degustacionTag}>MENÚ DEGUSTACIÓN</Text>
+                <Text style={styles.degustacionTitle}>7 tiempos, una experiencia para los sentidos.</Text>
+                <Text style={styles.degustacionPrice}>RD$2,950</Text>
+              </View>
+              <TouchableOpacity style={styles.degustacionArrowBtn} activeOpacity={0.8}>
+                <PremiumIcon name="arrow-right" size={14} color="#090a0f" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </>
+      )}
 
       {/* ── 5. FULL MENU CATALOG LIST ── */}
       <View style={styles.fullCatalogSection}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <PremiumIcon name="menu" size={16} color="#64748b" />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar platillo o ingrediente..."
@@ -310,7 +324,7 @@ export const DigitalMenu: React.FC = () => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Text style={styles.clearSearchText}>✕</Text>
+              <PremiumIcon name="x" size={14} color="#64748b" />
             </TouchableOpacity>
           )}
         </View>
@@ -320,7 +334,7 @@ export const DigitalMenu: React.FC = () => {
         <View style={styles.dishesGrid}>
           {filteredItems.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyEmoji}>🍽️</Text>
+              <PremiumIcon name="chef" size={32} color="#64748b" />
               <Text style={styles.emptyTitle}>Sin platillos disponibles</Text>
               <Text style={styles.emptySub}>Selecciona otra categoría o limpia tu búsqueda.</Text>
             </View>
@@ -343,13 +357,10 @@ export const DigitalMenu: React.FC = () => {
                     </Text>
                     <View style={styles.dishFooterRow}>
                       <View style={styles.prepTimeRow}>
-                        <Text style={styles.prepTimeIcon}>⏱️</Text>
+                        <PremiumIcon name="clock" size={12} color="#94a3b8" />
                         <Text style={styles.prepTimeText}>{item.prepTimeMinutes || 15} min</Text>
                       </View>
                       <Text style={styles.priceTag}>RD${item.price.toLocaleString()}</Text>
-                    </View>
-                    <View style={styles.viewOnlyBadge}>
-                      <Text style={styles.viewOnlyText}>Consulta el menú y solicita tu pedido con el mesero</Text>
                     </View>
                   </View>
                 </View>
@@ -365,163 +376,134 @@ export const DigitalMenu: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090a0f',
-  },
-
-  /* HERO SECTION */
-  heroWrapper: {
     paddingHorizontal: 20,
-    marginTop: 10,
+    paddingTop: 10,
+  },
+  heroWrapper: {
     marginBottom: 20,
   },
   heroBg: {
-    height: 310,
+    height: 190,
+    width: '100%',
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
   heroGradient: {
-    backgroundColor: 'rgba(9, 10, 15, 0.72)',
-    padding: 20,
-    borderRadius: 28,
-    height: '100%',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(9, 10, 15, 0.75)',
+    padding: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   heroTagline: {
     color: '#d4af37',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '900',
     letterSpacing: 2,
-    marginBottom: 6,
+    marginBottom: 2,
   },
   heroTitle: {
     color: '#ffffff',
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '900',
-    fontFamily: 'serif',
-    lineHeight: 32,
-    marginBottom: 8,
+    lineHeight: 22,
   },
   heroSub: {
-    color: '#a0a5b5',
+    color: '#cbd5e1',
     fontSize: 11,
-    lineHeight: 16,
-    marginBottom: 16,
-    maxWidth: '85%',
+    marginTop: 4,
   },
   heroCtaBtn: {
-    backgroundColor: '#d4af37',
-    borderRadius: 24,
-    paddingLeft: 18,
-    paddingRight: 6,
-    paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     alignSelf: 'flex-start',
-    gap: 12,
+    backgroundColor: '#d4af37',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    marginTop: 10,
   },
   heroCtaText: {
     color: '#090a0f',
+    fontSize: 10,
     fontWeight: '900',
-    fontSize: 11,
     letterSpacing: 1,
   },
   heroCtaIconCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#090a0f',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(9, 10, 15, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  heroCtaArrow: {
-    color: '#d4af37',
-    fontSize: 10,
-    fontWeight: '900',
-  },
   dotsRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginTop: 14,
     justifyContent: 'center',
+    gap: 6,
+    marginTop: 10,
   },
   dot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   dotActive: {
+    width: 20,
     backgroundColor: '#d4af37',
-    width: 16,
   },
-
-  /* CATEGORY CIRCLE ROW */
   categorySection: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   categorySlider: {
-    paddingHorizontal: 20,
-    gap: 18,
+    gap: 14,
   },
   categoryCircleItem: {
     alignItems: 'center',
-    width: 76,
   },
   categoryCircle: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    backgroundColor: '#12141d',
-    borderWidth: 1.5,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#0f111a',
+    borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
   },
   categoryCircleActive: {
+    backgroundColor: '#d4af37',
     borderColor: '#d4af37',
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    shadowColor: '#d4af37',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  categoryEmoji: {
-    fontSize: 24,
   },
   categoryLabel: {
-    color: '#7e8494',
+    color: '#94a3b8',
     fontSize: 9,
-    fontWeight: '900',
-    textAlign: 'center',
+    fontWeight: '800',
+    marginTop: 6,
     letterSpacing: 0.5,
   },
   categoryLabelActive: {
-    color: '#ffffff',
+    color: '#d4af37',
     fontWeight: '900',
   },
   activeUnderline: {
-    width: 20,
+    width: 12,
     height: 2,
     backgroundColor: '#d4af37',
     borderRadius: 1,
-    marginTop: 4,
+    marginTop: 3,
   },
-
-  /* RECOMENDADOS SECTION */
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   sectionTitleSerif: {
     color: '#ffffff',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
-    fontFamily: 'serif',
   },
   seeAllBtn: {
     flexDirection: 'row',
@@ -530,94 +512,81 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     color: '#d4af37',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  seeAllArrow: {
-    color: '#d4af37',
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: '800',
   },
   recommendedSlider: {
-    paddingHorizontal: 20,
-    gap: 14,
-    paddingBottom: 10,
+    gap: 12,
+    marginBottom: 20,
   },
   recommendedCard: {
-    width: 200,
-    backgroundColor: '#12141d',
-    borderRadius: 22,
+    width: 160,
+    backgroundColor: '#0f111a',
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.15)',
     overflow: 'hidden',
   },
   recommendedImage: {
     width: '100%',
-    height: 130,
-    backgroundColor: '#1a1d29',
+    height: 110,
   },
   favBtn: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(9, 10, 15, 0.65)',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(9, 10, 15, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  favHeart: {
-    fontSize: 14,
   },
   recommendedCardBody: {
     padding: 12,
   },
   recommendedTitle: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900',
-    marginBottom: 4,
   },
   recommendedSub: {
-    color: '#7e8494',
+    color: '#94a3b8',
     fontSize: 10,
+    marginTop: 2,
     lineHeight: 14,
-    marginBottom: 10,
-    height: 28,
   },
   recommendedPrice: {
     color: '#d4af37',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '900',
+    marginTop: 8,
   },
-
-  /* DEGUSTACIÓN BANNER */
   degustacionWrapper: {
-    paddingHorizontal: 20,
-    marginVertical: 20,
+    marginBottom: 20,
   },
   degustacionCard: {
-    backgroundColor: '#12141d',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.2)',
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#0f111a',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    overflow: 'hidden',
     padding: 12,
     gap: 12,
   },
   degustacionImg: {
-    width: 80,
-    height: 80,
-    borderRadius: 18,
-    backgroundColor: '#1a1d29',
+    width: 70,
+    height: 70,
+    borderRadius: 14,
   },
   degustacionContent: {
     flex: 1,
   },
   degustacionTag: {
     color: '#d4af37',
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '900',
     letterSpacing: 1.5,
   },
@@ -626,127 +595,105 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     marginTop: 2,
-    lineHeight: 16,
   },
   degustacionPrice: {
-    color: '#d4af37',
-    fontSize: 15,
+    color: '#10b981',
+    fontSize: 13,
     fontWeight: '900',
     marginTop: 4,
   },
   degustacionArrowBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#d4af37',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#d4af37',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  degustacionArrow: {
-    color: '#d4af37',
-    fontSize: 12,
-  },
-
-  /* FULL CATALOG SECTION */
   fullCatalogSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 130,
+    marginTop: 4,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#12141d',
-    borderRadius: 18,
+    backgroundColor: '#0f111a',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.2)',
     paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 10,
     marginBottom: 16,
-  },
-  searchIcon: {
-    fontSize: 14,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
     color: '#ffffff',
     fontSize: 12,
-    fontWeight: '700',
-  },
-  clearSearchText: {
-    color: '#7e8494',
-    fontSize: 14,
-    fontWeight: '900',
   },
   categoryTitleHeader: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: '#d4af37',
+    fontSize: 14,
     fontWeight: '900',
-    fontFamily: 'serif',
-    marginBottom: 14,
+    letterSpacing: 1.5,
+    marginBottom: 12,
   },
   dishesGrid: {
-    gap: 14,
+    gap: 12,
   },
   emptyCard: {
-    backgroundColor: '#12141d',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.15)',
-    alignItems: 'center',
+    backgroundColor: '#0f111a',
+    borderRadius: 20,
     padding: 30,
-  },
-  emptyEmoji: {
-    fontSize: 40,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   emptyTitle: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '900',
-    marginTop: 10,
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 8,
   },
   emptySub: {
-    color: '#7e8494',
-    fontSize: 12,
-    textAlign: 'center',
+    color: '#64748b',
+    fontSize: 11,
     marginTop: 4,
   },
   dishCard: {
-    backgroundColor: '#12141d',
-    borderRadius: 22,
+    flexDirection: 'row',
+    backgroundColor: '#0f111a',
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.15)',
-    flexDirection: 'row',
+    overflow: 'hidden',
     padding: 12,
     gap: 12,
-    alignItems: 'center',
   },
   dishImage: {
     width: 90,
     height: 90,
-    borderRadius: 18,
-    backgroundColor: '#1a1d29',
+    borderRadius: 14,
   },
   dishDetails: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   dishHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   dishTitle: {
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '900',
-    color: '#ffffff',
     flex: 1,
   },
   tagBadge: {
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    borderRadius: 6,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
     paddingHorizontal: 6,
     paddingVertical: 2,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.3)',
   },
@@ -754,12 +701,10 @@ const styles = StyleSheet.create({
     color: '#d4af37',
     fontSize: 8,
     fontWeight: '900',
-    letterSpacing: 0.5,
   },
   dishDesc: {
+    color: '#94a3b8',
     fontSize: 11,
-    color: '#7e8494',
-    marginTop: 3,
     lineHeight: 15,
   },
   dishFooterRow: {
@@ -773,29 +718,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  prepTimeIcon: {
-    fontSize: 11,
-  },
   prepTimeText: {
+    color: '#94a3b8',
     fontSize: 10,
-    color: '#38bdf8',
-    fontWeight: '800',
+    fontWeight: '700',
   },
   priceTag: {
-    fontSize: 15,
-    fontWeight: '900',
     color: '#d4af37',
-  },
-  viewOnlyBadge: {
-    marginTop: 8,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  viewOnlyText: {
-    color: '#7e8494',
-    fontSize: 9,
-    fontWeight: '700',
-    fontStyle: 'italic',
+    fontSize: 14,
+    fontWeight: '900',
   },
 });

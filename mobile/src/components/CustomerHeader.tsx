@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { TableItem } from '../types';
+import { PremiumIcon } from './common/PremiumIcon';
 
 interface CustomerHeaderProps {
   table: TableItem;
@@ -21,7 +22,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
         onPress={onOpenDrawer}
         activeOpacity={0.7}
       >
-        <Text style={styles.menuIcon}>☰</Text>
+        <PremiumIcon name="menu" size={20} color="#d4af37" />
       </TouchableOpacity>
 
       {/* Center Brand Title */}
@@ -42,7 +43,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
           onPress={onDisconnect}
           activeOpacity={0.7}
         >
-          <Text style={styles.disconnectText}>SALIR</Text>
+          <PremiumIcon name="x" size={14} color="#f43f5e" />
         </TouchableOpacity>
       </View>
     </View>
@@ -60,19 +61,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#090a0f',
   },
   iconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(212, 175, 55, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.3)',
-  },
-  menuIcon: {
-    color: '#d4af37',
-    fontSize: 22,
-    fontWeight: '300',
   },
   brandContainer: {
     alignItems: 'center',
@@ -82,7 +78,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#d4af37',
     letterSpacing: 4,
-    fontFamily: 'serif',
   },
   brandSub: {
     fontSize: 9,
@@ -120,19 +115,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   disconnectBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(225, 29, 72, 0.15)',
     borderWidth: 1,
     borderColor: 'rgba(225, 29, 72, 0.4)',
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  disconnectText: {
-    color: '#f43f5e',
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.5,
   },
 });
