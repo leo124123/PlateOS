@@ -355,29 +355,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#f59e0b',
   },
-  addCartBtn: {
-    backgroundColor: '#f59e0b',
-    borderRadius: 12,
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    alignSelf: 'flex-start',
-  },
-  addCartText: {
-    color: '#0f172a',
-    fontWeight: '900',
-    fontSize: 11,
-  },
-  qtyControlRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#020617',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#334155',
-    viewOnlyBadge: {
+  viewOnlyBadge: {
     marginTop: 8,
     paddingTop: 6,
     borderTopWidth: 1,
