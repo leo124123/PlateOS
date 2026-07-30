@@ -9,22 +9,32 @@ import {
   Image,
 } from 'react-native';
 import { useClientStore } from '../store/useClientStore';
-import { MenuItem } from '../types';
 
 const GOURMET_IMAGES: Record<string, string> = {
-  'Carpaccio de Res Trufado': 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80',
-  'Ceviche de Pulpo al Olivo': 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=500&q=80',
-  'Empanaditas de Mariscos (4ud)': 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=500&q=80',
-  'Ribeye Steak Prime 400g': 'https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=500&q=80',
-  'Salmón Glaseado al Maracuyá': 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=500&q=80',
-  'Risotto de Hongos Porcini': 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=500&q=80',
-  'Volcán de Chocolate con Helado': 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=500&q=80',
-  'Cheesecake de Frutos Rojos': 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=500&q=80',
-  'Cocktail Smoked Old Fashioned': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=500&q=80',
-  'Copa de Vino Tinto Reserva': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=500&q=80',
+  'Carpaccio de Res Trufado':
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80',
+  'Ceviche de Pulpo al Olivo':
+    'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=500&q=80',
+  'Empanaditas de Mariscos (4ud)':
+    'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=500&q=80',
+  'Ribeye Steak Prime 400g':
+    'https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=500&q=80',
+  'Salmón Glaseado al Maracuyá':
+    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=500&q=80',
+  'Risotto de Hongos Porcini':
+    'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=500&q=80',
+  'Volcán de Chocolate con Helado':
+    'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=500&q=80',
+  'Cheesecake de Frutos Rojos':
+    'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=500&q=80',
+  'Cocktail Smoked Old Fashioned':
+    'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=500&q=80',
+  'Copa de Vino Tinto Reserva':
+    'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=500&q=80',
 };
 
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=80';
+const DEFAULT_IMAGE =
+  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=80';
 
 export const DigitalMenu: React.FC = () => {
   const { categories, cart, addToCart, updateCartQuantity } = useClientStore();
@@ -47,54 +57,68 @@ export const DigitalMenu: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Search Input */}
-      <View style={styles.searchContainer}>
+      {/* Search Input Bar */}
+      <View style={styles.searchBar}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar platillo por nombre..."
+          placeholder="Buscar en la carta gourmet..."
           placeholderTextColor="#64748b"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Text style={styles.clearSearchText}>✕</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Category Pills Slider */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-      >
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={[
-              styles.categoryPill,
-              selectedCatId === cat.id && styles.categoryPillActive,
-            ]}
-            onPress={() => {
-              setSelectedCatId(cat.id);
-              setSearchQuery('');
-            }}
-          >
-            <Text
-              style={[
-                styles.categoryText,
-                selectedCatId === cat.id && styles.categoryTextActive,
-              ]}
-            >
-              {cat.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Gourmet Categories Horizontal Slider */}
+      <View style={styles.categoriesWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesSlider}
+        >
+          {categories.map((cat) => {
+            const isActive = selectedCatId === cat.id;
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                style={[styles.catPill, isActive && styles.catPillActive]}
+                onPress={() => {
+                  setSelectedCatId(cat.id);
+                  setSearchQuery('');
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.catText, isActive && styles.catTextActive]}>
+                  {cat.name}
+                </Text>
+                {cat.items && cat.items.length > 0 && (
+                  <View style={[styles.catBadge, isActive && styles.catBadgeActive]}>
+                    <Text style={[styles.catBadgeText, isActive && styles.catBadgeTextActive]}>
+                      {cat.items.length}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
-      {/* Items List */}
-      <ScrollView contentContainerStyle={styles.menuGrid} showsVerticalScrollIndicator={false}>
+      {/* Gourmet Dishes List */}
+      <ScrollView
+        contentContainerStyle={styles.dishesGrid}
+        showsVerticalScrollIndicator={false}
+      >
         {filteredItems.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🍽️</Text>
-            <Text style={styles.emptyText}>No se encontraron platillos en esta categoría</Text>
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>🍽️</Text>
+            <Text style={styles.emptyTitle}>Sin platillos disponibles</Text>
+            <Text style={styles.emptySub}>Prueba seleccionando otra categoría o limpiando tu búsqueda.</Text>
           </View>
         ) : (
           filteredItems.map((item) => {
@@ -102,37 +126,49 @@ export const DigitalMenu: React.FC = () => {
             const imageUri = item.imageUrl || GOURMET_IMAGES[item.name] || DEFAULT_IMAGE;
 
             return (
-              <View key={item.id} style={styles.card}>
-                <Image source={{ uri: imageUri }} style={styles.cardImage} />
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle}>{item.name}</Text>
-                  <Text style={styles.cardDesc} numberOfLines={2}>
-                    {item.description || 'Exquisito platillo gourmet preparado con ingredientes selectos.'}
+              <View key={item.id} style={styles.dishCard}>
+                <Image source={{ uri: imageUri }} style={styles.dishImage} />
+                <View style={styles.dishDetails}>
+                  <View style={styles.dishHeaderRow}>
+                    <Text style={styles.dishTitle}>{item.name}</Text>
+                    <View style={styles.tagBadge}>
+                      <Text style={styles.tagText}>GOURMET</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.dishDesc} numberOfLines={2}>
+                    {item.description || 'Exquisito platillo gourmet preparado con ingredientes seleccionados.'}
                   </Text>
-                  <View style={styles.metaRow}>
-                    <Text style={styles.prepText}>⏱️ {item.prepTimeMinutes || 15}m prep</Text>
-                    <Text style={styles.priceText}>${item.price.toFixed(2)}</Text>
+                  <View style={styles.dishFooterRow}>
+                    <View style={styles.prepTimeRow}>
+                      <Text style={styles.prepTimeIcon}>⏱️</Text>
+                      <Text style={styles.prepTimeText}>{item.prepTimeMinutes || 15} min</Text>
+                    </View>
+                    <Text style={styles.priceTag}>${item.price.toFixed(2)}</Text>
                   </View>
 
-                  {/* Actions */}
+                  {/* Quantity Actions */}
                   {qty === 0 ? (
-                    <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
-                      <Text style={styles.addButtonText}>＋ Agregar</Text>
+                    <TouchableOpacity
+                      style={styles.addCartBtn}
+                      onPress={() => addToCart(item)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.addCartText}>＋ Agregar a Comanda</Text>
                     </TouchableOpacity>
                   ) : (
-                    <View style={styles.qtyContainer}>
+                    <View style={styles.qtyControlRow}>
                       <TouchableOpacity
-                        style={styles.qtyButton}
+                        style={styles.qtyBtnMinus}
                         onPress={() => updateCartQuantity(item.id, -1)}
                       >
-                        <Text style={styles.qtyButtonText}>−</Text>
+                        <Text style={styles.qtyBtnText}>−</Text>
                       </TouchableOpacity>
-                      <Text style={styles.qtyText}>{qty}</Text>
+                      <Text style={styles.qtyCount}>{qty}</Text>
                       <TouchableOpacity
-                        style={styles.qtyButton}
+                        style={styles.qtyBtnPlus}
                         onPress={() => updateCartQuantity(item.id, 1)}
                       >
-                        <Text style={styles.qtyButtonText}>＋</Text>
+                        <Text style={styles.qtyBtnText}>＋</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -150,16 +186,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  searchContainer: {
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#0f172a',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#1e293b',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
     paddingHorizontal: 14,
     marginHorizontal: 20,
-    marginTop: 4,
+    marginTop: 6,
     marginBottom: 10,
   },
   searchIcon: {
@@ -171,144 +207,228 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: '#ffffff',
     fontSize: 13,
+    fontWeight: '700',
   },
-  categoriesContainer: {
+  clearSearchText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '900',
+    padding: 4,
+  },
+  categoriesWrapper: {
+    marginBottom: 8,
+  },
+  categoriesSlider: {
     paddingHorizontal: 20,
     gap: 8,
-    paddingBottom: 10,
+    paddingBottom: 6,
   },
-  categoryPill: {
+  catPill: {
     backgroundColor: '#0f172a',
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#1e293b',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  categoryPillActive: {
+  catPillActive: {
     backgroundColor: '#f59e0b',
     borderColor: '#f59e0b',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  categoryText: {
+  catText: {
     color: '#94a3b8',
     fontSize: 12,
     fontWeight: '800',
   },
-  categoryTextActive: {
+  catTextActive: {
     color: '#0f172a',
+    fontWeight: '900',
   },
-  menuGrid: {
+  catBadge: {
+    backgroundColor: '#1e293b',
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  catBadgeActive: {
+    backgroundColor: '#0f172a',
+  },
+  catBadgeText: {
+    color: '#94a3b8',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  catBadgeTextActive: {
+    color: '#f59e0b',
+  },
+  dishesGrid: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
-    gap: 12,
+    paddingBottom: 110,
+    gap: 14,
   },
-  emptyContainer: {
+  emptyCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#1e293b',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
+    padding: 30,
+    marginTop: 20,
   },
-  emptyIcon: {
+  emptyEmoji: {
     fontSize: 40,
-    opacity: 0.4,
   },
-  emptyText: {
+  emptyTitle: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: 10,
+  },
+  emptySub: {
     color: '#64748b',
     fontSize: 12,
-    marginTop: 8,
+    textAlign: 'center',
+    marginTop: 4,
   },
-  card: {
+  dishCard: {
     backgroundColor: '#0f172a',
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: 1.5,
     borderColor: '#1e293b',
     flexDirection: 'row',
     padding: 12,
     gap: 12,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  cardImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
+  dishImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 18,
     backgroundColor: '#1e293b',
   },
-  cardBody: {
+  dishDetails: {
     flex: 1,
   },
-  cardTitle: {
+  dishHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dishTitle: {
     fontSize: 14,
     fontWeight: '900',
     color: '#ffffff',
+    flex: 1,
   },
-  cardDesc: {
+  tagBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  tagText: {
+    color: '#f59e0b',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  dishDesc: {
     fontSize: 11,
     color: '#94a3b8',
-    marginTop: 2,
+    marginTop: 3,
     lineHeight: 15,
   },
-  metaRow: {
+  dishFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 6,
   },
-  prepText: {
+  prepTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  prepTimeIcon: {
+    fontSize: 11,
+  },
+  prepTimeText: {
     fontSize: 10,
     color: '#38bdf8',
-    fontWeight: '700',
+    fontWeight: '800',
   },
-  priceText: {
-    fontSize: 15,
+  priceTag: {
+    fontSize: 16,
     fontWeight: '900',
     color: '#f59e0b',
   },
-  addButton: {
+  addCartBtn: {
     backgroundColor: '#f59e0b',
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
+    borderRadius: 12,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
     marginTop: 8,
     alignSelf: 'flex-start',
   },
-  addButtonText: {
+  addCartText: {
     color: '#0f172a',
     fontWeight: '900',
     fontSize: 11,
   },
-  qtyContainer: {
+  qtyControlRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#020617',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#334155',
     alignSelf: 'flex-start',
     marginTop: 8,
-    padding: 2,
+    padding: 3,
     gap: 8,
   },
-  qtyButton: {
-    padding: 4,
+  qtyBtnMinus: {
     backgroundColor: '#1e293b',
-    borderRadius: 6,
+    borderRadius: 8,
     width: 28,
     height: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  qtyButtonText: {
+  qtyBtnPlus: {
+    backgroundColor: '#f59e0b',
+    borderRadius: 8,
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyBtnText: {
     color: '#ffffff',
     fontWeight: '900',
     fontSize: 16,
   },
-  qtyText: {
+  qtyCount: {
     color: '#ffffff',
     fontWeight: '900',
-    fontSize: 12,
+    fontSize: 13,
     paddingHorizontal: 4,
   },
 });

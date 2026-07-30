@@ -12,11 +12,11 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconn
     <View style={styles.container}>
       <View style={styles.leftGroup}>
         <View style={styles.logoBadge}>
-          <Text style={styles.logoEmoji}>🍽️</Text>
+          <Text style={styles.logoEmoji}>👑</Text>
         </View>
         <View>
           <Text style={styles.brandTitle}>
-            Plate<Text style={styles.brandAccent}>OS</Text>
+            Plate<Text style={styles.brandAccent}>OS</Text> <Text style={styles.brandSubTag}>GOURMET</Text>
           </Text>
           <View style={styles.statusRow}>
             <View style={styles.liveDot} />
@@ -29,7 +29,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconn
         <View style={styles.tableBadge}>
           <Text style={styles.tableBadgeText}>Mesa #{table.number}</Text>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={onDisconnect}>
+        <TouchableOpacity style={styles.logoutButton} onPress={onDisconnect} activeOpacity={0.8}>
           <Text style={styles.logoutEmoji}>🚪</Text>
         </TouchableOpacity>
       </View>
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     backgroundColor: '#0f172a',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomWidth: 1.5,
+    borderBottomColor: 'rgba(245, 158, 11, 0.25)',
   },
   leftGroup: {
     flexDirection: 'row',
@@ -54,10 +54,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   logoBadge: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 14,
-    backgroundColor: '#f59e0b',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -65,28 +67,35 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   brandTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '900',
     color: '#ffffff',
+    letterSpacing: -0.3,
   },
   brandAccent: {
     color: '#f59e0b',
   },
+  brandSubTag: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#f59e0b',
+    letterSpacing: 1,
+  },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
+    gap: 5,
+    marginTop: 1,
   },
   liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#10b981',
   },
   liveText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#10b981',
   },
   rightGroup: {
@@ -97,20 +106,22 @@ const styles = StyleSheet.create({
   tableBadge: {
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(245, 158, 11, 0.4)',
     borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
   tableBadgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '900',
     color: '#f59e0b',
   },
   logoutButton: {
     padding: 8,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
   },
   logoutEmoji: {
     fontSize: 14,
