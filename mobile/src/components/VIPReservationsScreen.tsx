@@ -136,7 +136,7 @@ export const VIPReservationsScreen: React.FC = () => {
                 onPress={() => setIncomingResponse(null)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.modalCloseText font-bold}>ENTENDIDO</Text>
+                <Text style={styles.modalCloseText}>ENTENDIDO</Text>
               </TouchableOpacity>
             </View>
           </View>
