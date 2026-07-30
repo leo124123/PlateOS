@@ -60,7 +60,7 @@ export const App: React.FC = () => {
   } = useRestaurantStore();
 
   const { user, fetchMe, logout } = useAuthStore();
-  const { isConnected } = useSocket();
+  const { socket, isConnected } = useSocket();
 
   useEffect(() => {
     fetchTables();
@@ -228,6 +228,12 @@ export const App: React.FC = () => {
                     (t) => (alertNotification.tableId && t.id === alertNotification.tableId) || t.number === alertNotification.tableNumber
                   );
                   if (table) setSelectedTable(table);
+                  if (socket) {
+                    socket.emit('waiter:attending_table', {
+                      tableId: alertNotification.tableId || table?.id,
+                      tableNumber: alertNotification.tableNumber,
+                    });
+                  }
                   setAlertNotification(null);
                 }}
                 className="px-4 py-2 bg-slate-950 text-amber-300 hover:bg-slate-900 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xl border border-amber-400 hover:scale-105 transition-all"

@@ -16,6 +16,8 @@ interface ClientState {
   customerName: string;
   activeOrder: Order | null;
   isCallWaiterActive: boolean;
+  isWaiterOnTheWay: boolean;
+  waiterOnTheWayMessage: string | null;
   isConnecting: boolean;
   orderSuccessMessage: string | null;
 
@@ -28,6 +30,7 @@ interface ClientState {
   removeFromCart: (itemId: string) => void;
   clearCart: () => void;
   callWaiter: () => void;
+  dismissWaiterOnTheWay: () => void;
   submitOrder: (notes?: string) => Promise<boolean>;
   requestBill: () => Promise<boolean>;
   setActiveOrder: (order: Order | null) => void;
@@ -40,6 +43,8 @@ export const useClientStore = create<ClientState>((set, get) => ({
   customerName: '',
   activeOrder: null,
   isCallWaiterActive: false,
+  isWaiterOnTheWay: false,
+  waiterOnTheWayMessage: null,
   isConnecting: false,
   orderSuccessMessage: null,
 
@@ -50,9 +55,23 @@ export const useClientStore = create<ClientState>((set, get) => ({
       const tableData: TableItem = res.data.data;
       set({ connectedTable: tableData, isConnecting: false });
 
-      // Connect to Socket room
+      // Connect to Socket room and listen to waiter response
       const socket = getSocket();
       socket.emit('join:room', 'waiters');
+      socket.off('waiter:attending_table');
+      socket.on('waiter:attending_table', (data: { tableNumber: number; tableId: string }) => {
+        const { connectedTable } = get();
+        if (connectedTable && (connectedTable.id === data.tableId || connectedTable.number === data.tableNumber)) {
+          set({
+            isWaiterOnTheWay: true,
+            isCallWaiterActive: false,
+            waiterOnTheWayMessage: 'El mesero va de camino, espera unos minutos por favor.',
+          });
+          setTimeout(() => {
+            set({ isWaiterOnTheWay: false, waiterOnTheWayMessage: null });
+          }, 15000);
+        }
+      });
 
       // Fetch Menu
       get().fetchMenu();
@@ -120,6 +139,8 @@ export const useClientStore = create<ClientState>((set, get) => ({
   },
 
   clearCart: () => set({ cart: [] }),
+
+  dismissWaiterOnTheWay: () => set({ isWaiterOnTheWay: false, waiterOnTheWayMessage: null }),
 
   callWaiter: () => {
     const { connectedTable } = get();

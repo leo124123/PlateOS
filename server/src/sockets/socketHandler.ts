@@ -83,6 +83,12 @@ export const setupSocketHandlers = (io: SocketIOServer) => {
       io.emit('waiter:customer_calling', data);
     });
 
+    // 5. Waiter attending table notification trigger
+    socket.on('waiter:attending_table', (data: { tableNumber: number; tableId: string }) => {
+      logger.info(`🏃 Mesero en camino a atender Mesa ${data.tableNumber}`);
+      io.emit('waiter:attending_table', data);
+    });
+
     socket.on('disconnect', () => {
       logger.info(`❌ Cliente WebSocket desconectado: ${socket.id}`);
     });

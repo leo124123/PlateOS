@@ -3,24 +3,40 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useClientStore } from '../store/useClientStore';
 
 export const CallWaiterButton: React.FC = () => {
-  const { isCallWaiterActive, callWaiter, connectedTable } = useClientStore();
+  const { isCallWaiterActive, isWaiterOnTheWay, callWaiter, connectedTable } = useClientStore();
 
   if (!connectedTable) return null;
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[styles.button, isCallWaiterActive && styles.buttonActive]}
+        style={[
+          styles.button,
+          isWaiterOnTheWay && styles.buttonOnTheWay,
+          isCallWaiterActive && !isWaiterOnTheWay && styles.buttonActive,
+        ]}
         onPress={callWaiter}
         activeOpacity={0.8}
       >
-        {isCallWaiterActive ? (
+        {isWaiterOnTheWay ? (
+          <>
+            <View style={styles.iconCircleOnTheWay}>
+              <Text style={styles.iconEmoji}>🏃</Text>
+            </View>
+            <View style={styles.textColumn}>
+              <Text style={styles.buttonTitleOnTheWay}>🏃 EL MESERO VA DE CAMINO</Text>
+              <Text style={styles.buttonSubOnTheWay}>
+                El mesero va de camino a tu mesa, espera unos minutos por favor.
+              </Text>
+            </View>
+          </>
+        ) : isCallWaiterActive ? (
           <>
             <Text style={styles.iconEmoji}>✅</Text>
             <View style={styles.textColumn}>
-              <Text style={styles.buttonTitleActive}>¡Mozo Notificado!</Text>
+              <Text style={styles.buttonTitleActive}>¡Solicitud Enviada!</Text>
               <Text style={styles.buttonSubActive}>
-                Un mesero viene en camino a la Mesa #{connectedTable.number}
+                Notificando al mesero de la Mesa #{connectedTable.number}...
               </Text>
             </View>
           </>
@@ -68,11 +84,24 @@ const styles = StyleSheet.create({
     borderColor: '#f43f5e',
     shadowColor: '#f43f5e',
   },
+  buttonOnTheWay: {
+    backgroundColor: '#064e3b',
+    borderColor: '#10b981',
+    shadowColor: '#10b981',
+  },
   iconCircle: {
     width: 40,
     height: 40,
     borderRadius: 14,
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconCircleOnTheWay: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -102,6 +131,17 @@ const styles = StyleSheet.create({
   buttonSubActive: {
     fontSize: 10,
     color: '#ffe4e6',
+    marginTop: 2,
+  },
+  buttonTitleOnTheWay: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#34d399',
+    letterSpacing: 0.5,
+  },
+  buttonSubOnTheWay: {
+    fontSize: 10,
+    color: '#a7f3d0',
     marginTop: 2,
   },
 });
