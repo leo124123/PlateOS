@@ -5,6 +5,8 @@ import {
   Text,
   StatusBar,
   TouchableOpacity,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { useClientStore } from './src/store/useClientStore';
@@ -21,10 +23,13 @@ export default function App() {
     connectTable,
     disconnectTable,
     isConnecting,
+    callWaiter,
+    requestBill,
   } = useClientStore();
 
   const [activeTab, setActiveTab] = useState<'inicio' | 'menu' | 'reservas' | 'experiencias' | 'mesa'>('inicio');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleConnect = async (tableCode: string) => {
     await connectTable(tableCode);
@@ -50,7 +55,11 @@ export default function App() {
           </View>
         ) : (
           <View style={styles.flexOne}>
-            <CustomerHeader table={connectedTable} onDisconnect={disconnectTable} />
+            <CustomerHeader
+              table={connectedTable}
+              onDisconnect={disconnectTable}
+              onOpenDrawer={() => setIsDrawerOpen(true)}
+            />
             <CallWaiterButton />
 
             <View style={styles.contentArea}>
@@ -114,6 +123,107 @@ export default function App() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* ── FUNCTIONAL LUXURY DRAWER SIDE MENU ── */}
+            <Modal
+              visible={isDrawerOpen}
+              animationType="slide"
+              transparent
+              onRequestClose={() => setIsDrawerOpen(false)}
+            >
+              <View style={styles.drawerOverlay}>
+                <TouchableOpacity
+                  style={styles.drawerBackdrop}
+                  onPress={() => setIsDrawerOpen(false)}
+                  activeOpacity={1}
+                />
+                <View style={styles.drawerContent}>
+                  <View style={styles.drawerHeader}>
+                    <Text style={styles.drawerBrandTitle}>PLATEOS GOURMET</Text>
+                    <TouchableOpacity
+                      style={styles.drawerCloseBtn}
+                      onPress={() => setIsDrawerOpen(false)}
+                    >
+                      <Text style={styles.drawerCloseText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.drawerTableBanner}>
+                    <Text style={styles.drawerTableTitle}>Mesa #{connectedTable.number}</Text>
+                    <Text style={styles.drawerTableSub}>Conectado en tiempo real</Text>
+                  </View>
+
+                  <ScrollView style={styles.drawerMenuScroll}>
+                    <TouchableOpacity
+                      style={styles.drawerMenuItem}
+                      onPress={() => {
+                        setIsDrawerOpen(false);
+                        setActiveTab('inicio');
+                      }}
+                    >
+                      <Text style={styles.drawerMenuIcon}>🏠</Text>
+                      <Text style={styles.drawerMenuText}>Inicio / Destacados</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.drawerMenuItem}
+                      onPress={() => {
+                        setIsDrawerOpen(false);
+                        callWaiter();
+                      }}
+                    >
+                      <Text style={styles.drawerMenuIcon}>🛎️</Text>
+                      <Text style={styles.drawerMenuText}>Llamar al Mesero</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.drawerMenuItem}
+                      onPress={() => {
+                        setIsDrawerOpen(false);
+                        setActiveTab('menu');
+                      }}
+                    >
+                      <Text style={styles.drawerMenuIcon}>📖</Text>
+                      <Text style={styles.drawerMenuText}>Carta Digital Gourmet</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.drawerMenuItem}
+                      onPress={() => {
+                        setIsDrawerOpen(false);
+                        setActiveTab('experiencias');
+                      }}
+                    >
+                      <Text style={styles.drawerMenuIcon}>🍷</Text>
+                      <Text style={styles.drawerMenuText}>Menú Degustación & Maridaje</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.drawerMenuItem}
+                      onPress={() => {
+                        setIsDrawerOpen(false);
+                        requestBill();
+                      }}
+                    >
+                      <Text style={styles.drawerMenuIcon}>💳</Text>
+                      <Text style={styles.drawerMenuText}>Solicitar la Cuenta</Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.drawerDivider} />
+
+                    <TouchableOpacity
+                      style={styles.drawerDisconnectBtn}
+                      onPress={() => {
+                        setIsDrawerOpen(false);
+                        disconnectTable();
+                      }}
+                    >
+                      <Text style={styles.drawerDisconnectText}>SALIR DE LA MESA</Text>
+                    </TouchableOpacity>
+                  </ScrollView>
+                </View>
+              </View>
+            </Modal>
           </View>
         )}
       </SafeAreaView>
@@ -168,5 +278,110 @@ const styles = StyleSheet.create({
   navBtnTextActive: {
     color: '#d4af37',
     fontWeight: '900',
+  },
+
+  /* DRAWER MODAL STYLES */
+  drawerOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'rgba(2, 6, 23, 0.8)',
+  },
+  drawerBackdrop: {
+    flex: 1,
+  },
+  drawerContent: {
+    width: '80%',
+    maxWidth: 320,
+    backgroundColor: '#090a0f',
+    height: '100%',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(212, 175, 55, 0.25)',
+    padding: 24,
+    paddingTop: 50,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  drawerBrandTitle: {
+    color: '#d4af37',
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 2,
+    fontFamily: 'serif',
+  },
+  drawerCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#12141d',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.2)',
+  },
+  drawerCloseText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  drawerTableBanner: {
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    padding: 14,
+    marginBottom: 20,
+  },
+  drawerTableTitle: {
+    color: '#d4af37',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  drawerTableSub: {
+    color: '#10b981',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  drawerMenuScroll: {
+    flex: 1,
+  },
+  drawerMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#12141d',
+  },
+  drawerMenuIcon: {
+    fontSize: 18,
+  },
+  drawerMenuText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  drawerDivider: {
+    height: 1,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    marginVertical: 20,
+  },
+  drawerDisconnectBtn: {
+    backgroundColor: 'rgba(225, 29, 72, 0.15)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(225, 29, 72, 0.4)',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  drawerDisconnectText: {
+    color: '#f43f5e',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
 });

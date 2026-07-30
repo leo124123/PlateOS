@@ -5,13 +5,22 @@ import { TableItem } from '../types';
 interface CustomerHeaderProps {
   table: TableItem;
   onDisconnect: () => void;
+  onOpenDrawer?: () => void;
 }
 
-export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconnect }) => {
+export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
+  table,
+  onDisconnect,
+  onOpenDrawer,
+}) => {
   return (
     <View style={styles.container}>
-      {/* Left Menu Button */}
-      <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+      {/* Left Menu Hamburger Button */}
+      <TouchableOpacity
+        style={styles.iconBtn}
+        onPress={onOpenDrawer}
+        activeOpacity={0.7}
+      >
         <Text style={styles.menuIcon}>☰</Text>
       </TouchableOpacity>
 
@@ -27,8 +36,13 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({ table, onDisconn
           <View style={styles.liveDot} />
           <Text style={styles.tableBadgeText}>Mesa #{table.number}</Text>
         </View>
-        <TouchableOpacity style={styles.iconBtn} onPress={onDisconnect} activeOpacity={0.7}>
-          <Text style={styles.logoutIcon}>🚪</Text>
+
+        <TouchableOpacity
+          style={styles.disconnectBtn}
+          onPress={onDisconnect}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.disconnectText}>SALIR</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -46,22 +60,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#090a0f',
   },
   iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(212, 175, 55, 0.3)',
   },
   menuIcon: {
     color: '#d4af37',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '300',
-  },
-  logoutIcon: {
-    fontSize: 16,
   },
   brandContainer: {
     alignItems: 'center',
@@ -106,6 +117,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '900',
     color: '#d4af37',
+    letterSpacing: 0.5,
+  },
+  disconnectBtn: {
+    backgroundColor: 'rgba(225, 29, 72, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(225, 29, 72, 0.4)',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disconnectText: {
+    color: '#f43f5e',
+    fontSize: 10,
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
 });

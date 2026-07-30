@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,44 @@ import {
   Image,
   ImageBackground,
   Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useClientStore } from '../store/useClientStore';
 
 const { width } = Dimensions.get('window');
+const SLIDE_WIDTH = width - 40;
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80';
+const HERO_SLIDES = [
+  {
+    id: 'slide-1',
+    tagline: 'EXPERIENCIAS ÚNICAS',
+    title: 'Alta cocina,\nmomentos\ninolvidables.',
+    sub: 'Ingredientes selectos, técnicas de autor y pasión en cada plato.',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'slide-2',
+    tagline: 'CORTES PRIME & MADURADOS',
+    title: 'Sabores intensos,\ncorte perfecto.',
+    sub: 'Carnes de selección premium cocinadas al punto exacto a las brasas.',
+    image: 'https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'slide-3',
+    tagline: 'MIXOLOGÍA DE AUTOR',
+    title: 'Cócteles ahumados\ny vinos reserva.',
+    sub: 'Un maridaje de excepción diseñado por nuestros sommeliers.',
+    image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'slide-4',
+    tagline: 'ALTA REPOSTERÍA',
+    title: 'El broche de oro\npara tu velada.',
+    sub: 'Postres de autor elaborados diariamente por nuestros maestros pasteleros.',
+    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=1000&q=80',
+  },
+];
 
 const DEGUSTACION_IMAGE =
   'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=800&q=80';
@@ -52,7 +83,6 @@ const GOURMET_IMAGES: Record<string, string> = {
 const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 
-// Recommended Chef Specialties matching the mockup
 const RECOMMENDED_ITEMS = [
   {
     id: 'rec-1',
@@ -92,10 +122,35 @@ export const DigitalMenu: React.FC = () => {
   const { categories, connectedTable } = useClientStore();
   const [selectedCatId, setSelectedCatId] = useState<string>(categories[0]?.id || '');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({
     'rec-1': true,
     'rec-2': true,
   });
+
+  const heroScrollRef = useRef<ScrollView>(null);
+
+  // Auto-scroll hero carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlideIndex((prev) => {
+        const nextIndex = (prev + 1) % HERO_SLIDES.length;
+        heroScrollRef.current?.scrollTo({
+          x: nextIndex * SLIDE_WIDTH,
+          animated: true,
+        });
+        return nextIndex;
+      });
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleHeroScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const slide = Math.round(event.nativeEvent.contentOffset.x / SLIDE_WIDTH);
+    if (slide !== activeSlideIndex && slide >= 0 && slide < HERO_SLIDES.length) {
+      setActiveSlideIndex(slide);
+    }
+  };
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -112,33 +167,57 @@ export const DigitalMenu: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* ── 1. HERO FEATURED SECTION (MATCHES AURUM MOCKUP) ── */}
+      {/* ── 1. INTERACTIVE PARALLAX HERO CAROUSEL ── */}
       <View style={styles.heroWrapper}>
-        <ImageBackground source={{ uri: HERO_IMAGE }} style={styles.heroBg} imageStyle={{ borderRadius: 28 }}>
-          <View style={styles.heroGradient}>
-            <Text style={styles.heroTagline}>EXPERIENCIAS ÚNICAS</Text>
-            <Text style={styles.heroTitle}>Alta cocina,{'\n'}momentos{'\n'}inolvidables.</Text>
-            <Text style={styles.heroSub}>
-              Ingredientes selectos, técnicas de autor y pasión en cada plato.
-            </Text>
+        <ScrollView
+          ref={heroScrollRef}
+          horizontal
+          pagingEnabled
+          snapToInterval={SLIDE_WIDTH}
+          decelerationRate="fast"
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleHeroScroll}
+          scrollEventThrottle={16}
+        >
+          {HERO_SLIDES.map((slide) => (
+            <View key={slide.id} style={{ width: SLIDE_WIDTH }}>
+              <ImageBackground
+                source={{ uri: slide.image }}
+                style={styles.heroBg}
+                imageStyle={{ borderRadius: 28 }}
+              >
+                <View style={styles.heroGradient}>
+                  <Text style={styles.heroTagline}>{slide.tagline}</Text>
+                  <Text style={styles.heroTitle}>{slide.title}</Text>
+                  <Text style={styles.heroSub}>{slide.sub}</Text>
 
-            <TouchableOpacity style={styles.heroCtaBtn} activeOpacity={0.85}>
-              <Text style={styles.heroCtaText}>MESA #{connectedTable?.number || 1}</Text>
-              <View style={styles.heroCtaIconCircle}>
-                <Text style={styles.heroCtaArrow}>❯</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Carousel Dots */}
-            <View style={styles.dotsRow}>
-              <View style={[styles.dot, styles.dotActive]} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
+                  <TouchableOpacity style={styles.heroCtaBtn} activeOpacity={0.85}>
+                    <Text style={styles.heroCtaText}>
+                      MESA #{connectedTable?.number || 1}
+                    </Text>
+                    <View style={styles.heroCtaIconCircle}>
+                      <Text style={styles.heroCtaArrow}>❯</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </ImageBackground>
             </View>
-          </View>
-        </ImageBackground>
+          ))}
+        </ScrollView>
+
+        {/* Dynamic Carousel Active Dots */}
+        <View style={styles.dotsRow}>
+          {HERO_SLIDES.map((_, idx) => (
+            <TouchableOpacity
+              key={idx}
+              onPress={() => {
+                heroScrollRef.current?.scrollTo({ x: idx * SLIDE_WIDTH, animated: true });
+                setActiveSlideIndex(idx);
+              }}
+              style={[styles.dot, activeSlideIndex === idx && styles.dotActive]}
+            />
+          ))}
+        </View>
       </View>
 
       {/* ── 2. CIRCULAR CATEGORY ICONS ROW ── */}
@@ -168,7 +247,7 @@ export const DigitalMenu: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* ── 3. RECOMENDADOS PARA TI (HORIZONTAL SCROLL CAROUSEL) ── */}
+      {/* ── 3. RECOMENDADOS PARA TI CAROUSEL ── */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitleSerif}>Recomendados para ti</Text>
         <TouchableOpacity style={styles.seeAllBtn} activeOpacity={0.7}>
@@ -203,7 +282,7 @@ export const DigitalMenu: React.FC = () => {
         })}
       </ScrollView>
 
-      {/* ── 4. MENÚ DEGUSTACIÓN EXPERIENCE BANNER ── */}
+      {/* ── 4. MENÚ DEGUSTACIÓN BANNER ── */}
       <View style={styles.degustacionWrapper}>
         <View style={styles.degustacionCard}>
           <Image source={{ uri: DEGUSTACION_IMAGE }} style={styles.degustacionImg} />
@@ -218,7 +297,7 @@ export const DigitalMenu: React.FC = () => {
         </View>
       </View>
 
-      {/* ── 5. FULL MENU CATALOG LIST WITH SEARCH ── */}
+      {/* ── 5. FULL MENU CATALOG LIST ── */}
       <View style={styles.fullCatalogSection}>
         <View style={styles.searchBar}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -268,6 +347,9 @@ export const DigitalMenu: React.FC = () => {
                         <Text style={styles.prepTimeText}>{item.prepTimeMinutes || 15} min</Text>
                       </View>
                       <Text style={styles.priceTag}>RD${item.price.toLocaleString()}</Text>
+                    </View>
+                    <View style={styles.viewOnlyBadge}>
+                      <Text style={styles.viewOnlyText}>Consulta el menú y solicita tu pedido con el mesero</Text>
                     </View>
                   </View>
                 </View>
@@ -324,7 +406,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     marginBottom: 16,
-    maxWidth: '75%',
+    maxWidth: '85%',
   },
   heroCtaBtn: {
     backgroundColor: '#d4af37',
@@ -366,11 +448,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   dotActive: {
     backgroundColor: '#d4af37',
-    width: 14,
+    width: 16,
   },
 
   /* CATEGORY CIRCLE ROW */
@@ -703,5 +785,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     color: '#d4af37',
+  },
+  viewOnlyBadge: {
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  viewOnlyText: {
+    color: '#7e8494',
+    fontSize: 9,
+    fontWeight: '700',
+    fontStyle: 'italic',
   },
 });
