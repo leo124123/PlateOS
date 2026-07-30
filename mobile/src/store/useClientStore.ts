@@ -17,6 +17,7 @@ interface ClientState {
   activeOrder: Order | null;
   isCallWaiterActive: boolean;
   isWaiterOnTheWay: boolean;
+  showArrivalCheck: boolean;
   waiterOnTheWayMessage: string | null;
   isConnecting: boolean;
   orderSuccessMessage: string | null;
@@ -31,6 +32,7 @@ interface ClientState {
   clearCart: () => void;
   callWaiter: () => void;
   dismissWaiterOnTheWay: () => void;
+  confirmWaiterArrived: () => void;
   submitOrder: (notes?: string) => Promise<boolean>;
   requestBill: () => Promise<boolean>;
   setActiveOrder: (order: Order | null) => void;
@@ -44,6 +46,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
   activeOrder: null,
   isCallWaiterActive: false,
   isWaiterOnTheWay: false,
+  showArrivalCheck: false,
   waiterOnTheWayMessage: null,
   isConnecting: false,
   orderSuccessMessage: null,
@@ -64,12 +67,18 @@ export const useClientStore = create<ClientState>((set, get) => ({
         if (connectedTable && (connectedTable.id === data.tableId || connectedTable.number === data.tableNumber)) {
           set({
             isWaiterOnTheWay: true,
+            showArrivalCheck: false,
             isCallWaiterActive: false,
             waiterOnTheWayMessage: 'El mesero va de camino, espera unos minutos por favor.',
           });
+
+          // Set 25-second timer to ask if the waiter has arrived
           setTimeout(() => {
-            set({ isWaiterOnTheWay: false, waiterOnTheWayMessage: null });
-          }, 15000);
+            const { isWaiterOnTheWay } = get();
+            if (isWaiterOnTheWay) {
+              set({ showArrivalCheck: true });
+            }
+          }, 25000);
         }
       });
 
@@ -140,7 +149,9 @@ export const useClientStore = create<ClientState>((set, get) => ({
 
   clearCart: () => set({ cart: [] }),
 
-  dismissWaiterOnTheWay: () => set({ isWaiterOnTheWay: false, waiterOnTheWayMessage: null }),
+  dismissWaiterOnTheWay: () => set({ isWaiterOnTheWay: false, showArrivalCheck: false, waiterOnTheWayMessage: null }),
+
+  confirmWaiterArrived: () => set({ isWaiterOnTheWay: false, showArrivalCheck: false, waiterOnTheWayMessage: null }),
 
   callWaiter: () => {
     const { connectedTable } = get();
