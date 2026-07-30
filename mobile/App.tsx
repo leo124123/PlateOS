@@ -80,21 +80,14 @@ export default function App() {
                 style={[styles.navBtn, activeTab === 'order' && styles.navBtnActive]}
                 onPress={() => setActiveTab('order')}
               >
-                <View style={styles.iconBadgeWrapper}>
-                  <Text style={styles.navIcon}>🛒</Text>
-                  {cartTotalItems > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{cartTotalItems}</Text>
-                    </View>
-                  )}
-                </View>
+                <Text style={styles.navIcon}>📋</Text>
                 <Text
                   style={[
                     styles.navBtnText,
                     activeTab === 'order' && styles.navBtnTextActive,
                   ]}
                 >
-                  Mi Pedido
+                  Mi Mesa / Cuenta
                 </Text>
               </TouchableOpacity>
             </View>

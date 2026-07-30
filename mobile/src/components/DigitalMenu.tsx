@@ -146,32 +146,10 @@ export const DigitalMenu: React.FC = () => {
                     <Text style={styles.priceTag}>${item.price.toFixed(2)}</Text>
                   </View>
 
-                  {/* Quantity Actions */}
-                  {qty === 0 ? (
-                    <TouchableOpacity
-                      style={styles.addCartBtn}
-                      onPress={() => addToCart(item)}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.addCartText}>＋ Agregar a Comanda</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={styles.qtyControlRow}>
-                      <TouchableOpacity
-                        style={styles.qtyBtnMinus}
-                        onPress={() => updateCartQuantity(item.id, -1)}
-                      >
-                        <Text style={styles.qtyBtnText}>−</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.qtyCount}>{qty}</Text>
-                      <TouchableOpacity
-                        style={styles.qtyBtnPlus}
-                        onPress={() => updateCartQuantity(item.id, 1)}
-                      >
-                        <Text style={styles.qtyBtnText}>＋</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                  {/* View-only Menu Details */}
+                  <View style={styles.viewOnlyBadge}>
+                    <Text style={styles.viewOnlyText}>Consulta el menú y solicita tu pedido con el mesero</Text>
+                  </View>
                 </View>
               </View>
             );
@@ -399,36 +377,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#334155',
-    alignSelf: 'flex-start',
+    viewOnlyBadge: {
     marginTop: 8,
-    padding: 3,
-    gap: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
   },
-  qtyBtnMinus: {
-    backgroundColor: '#1e293b',
-    borderRadius: 8,
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qtyBtnPlus: {
-    backgroundColor: '#f59e0b',
-    borderRadius: 8,
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qtyBtnText: {
-    color: '#ffffff',
-    fontWeight: '900',
-    fontSize: 16,
-  },
-  qtyCount: {
-    color: '#ffffff',
-    fontWeight: '900',
-    fontSize: 13,
-    paddingHorizontal: 4,
+  viewOnlyText: {
+    color: '#64748b',
+    fontSize: 9,
+    fontWeight: '700',
+    fontStyle: 'italic',
   },
 });
