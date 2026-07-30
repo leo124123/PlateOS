@@ -13,6 +13,8 @@ const getServerHost = (): string => {
 
 const SERVER_HOST = getServerHost();
 
+console.log('[PlateOS Socket] Server URL:', SERVER_HOST);
+
 let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {

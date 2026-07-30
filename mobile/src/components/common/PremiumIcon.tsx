@@ -141,7 +141,7 @@ export const PremiumIcon: React.FC<PremiumIconProps> = ({
     case 'zap':
       return (
         <Svg {...commonProps}>
-          <Polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          <Path d="M13 2 L3 14 L12 14 L11 22 L21 10 L12 10 L13 2 Z" />
         </Svg>
       );
 
@@ -208,9 +208,4 @@ export const PremiumIcon: React.FC<PremiumIconProps> = ({
         </Svg>
       );
   }
-};
-
-const Polygon: React.FC<any> = (props) => {
-  const { points, ...rest } = props;
-  return <Path d={`M ${points.replace(/\s+/g, ' L ')} Z`} {...rest} />;
 };
