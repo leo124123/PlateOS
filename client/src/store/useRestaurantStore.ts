@@ -11,7 +11,7 @@ interface RestaurantState {
   dailyGoal: DailyGoal | null;
   isOrderModalOpen: boolean;
   isPaymentModalOpen: boolean;
-  alertNotification: { message: string; tableNumber: number; orderId: string; tableId?: string } | null;
+  alertNotification: { message: string; tableNumber: number; orderId: string; tableId?: string; type?: 'ORDER_READY' | 'CALL_WAITER' } | null;
 
   fetchTables: () => Promise<void>;
   fetchMenu: () => Promise<void>;
@@ -22,7 +22,7 @@ interface RestaurantState {
   closeOrderModal: () => void;
   openPaymentModal: (table: TableItem) => void;
   closePaymentModal: () => void;
-  setAlertNotification: (alert: { message: string; tableNumber: number; orderId: string; tableId?: string } | null) => void;
+  setAlertNotification: (alert: { message: string; tableNumber: number; orderId: string; tableId?: string; type?: 'ORDER_READY' | 'CALL_WAITER' } | null) => void;
 }
 
 export const useRestaurantStore = create<RestaurantState>((set) => ({

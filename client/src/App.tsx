@@ -206,43 +206,81 @@ export const App: React.FC = () => {
 
       {/* Alert Banner Notification: STRICTLY FOR WAITERS AND ADMINS ONLY */}
       {alertNotification && (user?.role === 'WAITER' || user?.role === 'ADMIN') && (
-        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 px-6 py-2.5 text-slate-950 font-black text-xs flex items-center justify-between shadow-xl animate-in slide-in-from-top duration-300 z-30">
-          <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 animate-bounce" />
-            <span>¡PEDIDO LISTO EN COCINA! Mesa #{alertNotification.tableNumber} — El platillo está listo para llevar al cliente.</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={async () => {
-                if (!alertNotification) return;
-                try {
-                  await api.patch(`/orders/${alertNotification.orderId}/status`, { status: 'SERVED' });
-                  try {
-                    const raw = localStorage.getItem('plateos_active_timers');
-                    if (raw) {
-                      const timers = JSON.parse(raw);
-                      delete timers[alertNotification.orderId];
-                      localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
-                    }
-                  } catch (err) {}
-                  await fetchTables();
+        alertNotification.type === 'CALL_WAITER' || (!alertNotification.orderId && alertNotification.message?.includes('llamando')) ? (
+          <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 px-6 py-3 text-white font-black text-xs flex items-center justify-between shadow-2xl animate-pulse z-40 border-b-2 border-amber-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-white/20 text-yellow-300 animate-bounce">
+                <Bell className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="block text-sm font-black tracking-tight text-yellow-300 uppercase">
+                  🚨 ¡ATENCIÓN MESERO! MESA #{alertNotification.tableNumber} SOLICITA ATENCIÓN
+                </span>
+                <span className="text-[11px] opacity-90 font-medium text-slate-100">
+                  El cliente en la Mesa #{alertNotification.tableNumber} requiere asistencia o servicio presencial en este momento.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const table = tables.find(
+                    (t) => (alertNotification.tableId && t.id === alertNotification.tableId) || t.number === alertNotification.tableNumber
+                  );
+                  if (table) setSelectedTable(table);
                   setAlertNotification(null);
-                } catch (err) {
-                  console.error('Error entregando pedido', err);
-                }
-              }}
-              className="px-3.5 py-1.5 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border border-emerald-400/40 hover:scale-105 transition-all"
-            >
-              <Truck className="w-4 h-4" /> 🚚 Llevar Pedido
-            </button>
-            <button
-              onClick={() => setAlertNotification(null)}
-              className="px-3 py-1.5 bg-slate-950/80 text-white rounded-xl text-[10px] uppercase font-bold hover:bg-slate-950"
-            >
-              Entendido
-            </button>
+                }}
+                className="px-4 py-2 bg-slate-950 text-amber-300 hover:bg-slate-900 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xl border border-amber-400 hover:scale-105 transition-all"
+              >
+                🏃 Ir a Atender Mesa #{alertNotification.tableNumber}
+              </button>
+              <button
+                onClick={() => setAlertNotification(null)}
+                className="px-3 py-2 bg-black/40 text-white hover:bg-black/60 rounded-xl text-xs font-bold"
+              >
+                Entendido
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 px-6 py-2.5 text-slate-950 font-black text-xs flex items-center justify-between shadow-xl animate-in slide-in-from-top duration-300 z-30">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 animate-bounce" />
+              <span>¡PEDIDO LISTO EN COCINA! Mesa #{alertNotification.tableNumber} — El platillo está listo para llevar al cliente.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  if (!alertNotification) return;
+                  try {
+                    await api.patch(`/orders/${alertNotification.orderId}/status`, { status: 'SERVED' });
+                    try {
+                      const raw = localStorage.getItem('plateos_active_timers');
+                      if (raw) {
+                        const timers = JSON.parse(raw);
+                        delete timers[alertNotification.orderId];
+                        localStorage.setItem('plateos_active_timers', JSON.stringify(timers));
+                      }
+                    } catch (err) {}
+                    await fetchTables();
+                    setAlertNotification(null);
+                  } catch (err) {
+                    console.error('Error entregando pedido', err);
+                  }
+                }}
+                className="px-3.5 py-1.5 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md border border-emerald-400/40 hover:scale-105 transition-all"
+              >
+                <Truck className="w-4 h-4" /> 🚚 Llevar Pedido
+              </button>
+              <button
+                onClick={() => setAlertNotification(null)}
+                className="px-3 py-1.5 bg-slate-950/80 text-white rounded-xl text-[10px] uppercase font-bold hover:bg-slate-950"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )
       )}
 
       {/* Main Content Area */}
